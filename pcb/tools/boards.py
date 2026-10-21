@@ -7,6 +7,7 @@ lehimlenir. SMD elemanlar (1206 direnç/kondansatör, SMA diyot) doğrudan alt y
 Hub: ön kenar (y=0) klimaya bakar; IR LED'ler, IR alıcı ve durum LED'leri buradadır.
      XIAO'nun USB-C'si arka kenara (y=max) bakar.
 Sensör: duvarda dikey durur. Üst kenarda SHT31 (ısıl yarıkla ayrılmış), alt kenarda USB-C.
+        Sol üst köşedeki M2 delik kutunun vidası içindir.
 """
 
 FP = "/usr/share/kicad/footprints"
@@ -26,6 +27,7 @@ H3 = ("Connector_PinHeader_2.54mm", "PinHeader_1x03_P2.54mm_Vertical")
 H4 = ("Connector_PinHeader_2.54mm", "PinHeader_1x04_P2.54mm_Vertical")
 H7 = ("Connector_PinHeader_2.54mm", "PinHeader_1x07_P2.54mm_Vertical")
 XIAO = (LOCAL, "XIAO_DIP14")
+MH2 = ("MountingHole", "MountingHole_2.2mm_M2")
 
 
 def comp(ref, fp, value, x, y, rot=0, side="top", desc=""):
@@ -120,6 +122,8 @@ SENSOR = dict(
     gnd_ring=1.0,
     components=[
         comp("U1", XIAO, "XIAO ESP32-C3", 12.0, 33.0, 180, desc="Seeed XIAO ESP32-C3"),
+        # Kutu vidası: arka kapaktan geçen M2 vida kartı sıkıştırır ve ön kapağı tutar (enclosure/)
+        comp("H1", MH2, "M2", 3.6, 3.0, desc="M2 vida deliği (kutu)"),
         comp("J3", H4, "SHT31", 8.19, 5.0, 90, desc="SHT31 modülü: GND, VIN, SDA, SCL"),
         comp("J1", JST2, "BAT", 7.3, 18.2, 0, desc="LiPo pil 503035 (JST-PH 2.0)"),
         comp("J2", H2, "XBAT", 14.0, 19.0, 90, desc="XIAO alt BAT+/BAT- pedlerine kablo"),

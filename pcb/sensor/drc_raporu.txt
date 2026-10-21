@@ -1,47 +1,54 @@
 ** Drc report for /home/user/iot-air-conditioner/pcb/sensor/klima-sensor.kicad_pcb **
-** Created on 2026-10-21 04:15:22 **
+** Created on 2026-10-21 04:35:13 **
 
-** Found 12 DRC violations **
-[silk_overlap]: Silkscreen overlap
-    Rule: board setup constraints silk; Severity: warning
-    @(11.3600 mm, 19.0000 mm): Line on F.Silkscreen
-    @(11.6700 mm, 19.0000 mm): Reference 'J2'
+** Found 14 DRC violations **
 [silk_overlap]: Silkscreen overlap
     Rule: board setup constraints silk; Severity: warning
     @(11.3600 mm, 21.1100 mm): Line on F.Silkscreen
     @(11.6700 mm, 19.0000 mm): Reference 'J2'
 [silk_overlap]: Silkscreen overlap
     Rule: board setup constraints silk; Severity: warning
-    @(13.1500 mm, 36.6000 mm): Reference 'C1'
+    @(11.3600 mm, 19.0000 mm): Line on F.Silkscreen
+    @(11.6700 mm, 19.0000 mm): Reference 'J2'
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
     @(12.9100 mm, 35.8729 mm): Line on B.Silkscreen
+    @(13.1500 mm, 36.6000 mm): Reference 'C1'
 [starved_thermal]: Thermal relief connection to zone incomplete (zone min spoke count 2; actual 1)
     Local override; Severity: error
     @(0.0000 mm, 0.0000 mm): Zone [GND] on B.Cu
     @(15.0000 mm, 38.1625 mm): Pad 2 [GND] of C1 on B.Cu
-[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
-    Local override; Severity: warning
-    @(8.1900 mm, 5.0000 mm): Footprint J3
 [lib_footprint_issues]: The current configuration does not include the library 'Connector_JST'.
     Local override; Severity: warning
     @(7.3000 mm, 18.2000 mm): Footprint J1
 [lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
     Local override; Severity: warning
     @(14.0000 mm, 19.0000 mm): Footprint J2
+[lib_footprint_issues]: The current configuration does not include the library 'MountingHole'.
+    Local override; Severity: warning
+    @(3.6000 mm, 3.0000 mm): Footprint H1
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
+    Local override; Severity: warning
+    @(8.1900 mm, 5.0000 mm): Footprint J3
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(12.0000 mm, 36.6000 mm): Footprint R2
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(9.0000 mm, 40.6000 mm): Footprint R3
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(10.0000 mm, 33.0000 mm): Footprint R1
 [lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
     Local override; Severity: warning
     @(14.5000 mm, 40.6000 mm): Footprint R4
 [lib_footprint_issues]: The current configuration does not include the library 'Capacitor_SMD'.
     Local override; Severity: warning
     @(15.0000 mm, 36.6000 mm): Footprint C1
-[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
-    Local override; Severity: warning
-    @(12.0000 mm, 36.6000 mm): Footprint R2
-[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
-    Local override; Severity: warning
-    @(10.0000 mm, 33.0000 mm): Footprint R1
-[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
-    Local override; Severity: warning
-    @(9.0000 mm, 40.6000 mm): Footprint R3
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(3.6000 mm, -0.2000 mm): Reference 'H1'
 
 ** Found 0 unconnected pads **
 

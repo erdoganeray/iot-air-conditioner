@@ -10,7 +10,7 @@ G17
 G0 Z8.000
 M3 S12000
 G4 P3
-(Dis hat [sekmeli])
+(Dis hat, sekmeli)
 G0 X5.6091 Y46.4682
 G0 Z1.5
 G1 Z-0.4 F40

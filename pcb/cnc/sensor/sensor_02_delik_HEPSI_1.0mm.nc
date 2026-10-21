@@ -1,4 +1,4 @@
-(KlimaHub sensor karti - TUM delikler tek uc 1.0 mm [22 adet])
+(KlimaHub sensor karti - TUM delikler tek uc 1.0 mm [23 adet])
 (Takim: 1.0 mm matkap ucu)
 (Birim mm, mutlak koordinat. X/Y sifiri: plakanin sol-on kosesi, kart 4 mm iceriden baslar)
 (Z sifiri: bakir yuzey - Candle ile Z-probe yapin; izolasyonda heightmap onerilir)
@@ -75,6 +75,9 @@ G0 X15.73 Y43
 G1 Z-1.9 F60
 G0 Z1.5
 G0 X13.19 Y43
+G1 Z-1.9 F60
+G0 Z1.5
+G0 X25.4 Y45
 G1 Z-1.9 F60
 G0 Z8.000
 M5

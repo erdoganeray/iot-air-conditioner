@@ -10,8 +10,9 @@ G17
 G0 Z8.000
 M3 S12000
 G4 P3
+(UYARI: 2.2 mm vida deligi bu frezeden kucuk, ATLANDI. Matkapla acin)
 (UYARI: 8.0 x 2.2 mm yarik bu frezeye dar, ATLANDI. Yarigi 1.0 mm freze dosyasiyla kesin veya elle acin)
-(Dis hat [sekmeli])
+(Dis hat, sekmeli)
 G0 X5.3779 Y49.5309
 G0 Z1.5
 G1 Z-0.4 F40

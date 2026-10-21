@@ -55,8 +55,15 @@ def read_board(path):
     pads = []   # (ref, num, net, x, y)
     holes = []  # (x, y, d)
     jumpers = []
+    npth = []   # (x, y, d) kaplamasız vida delikleri: kesim frezesiyle oyulur
     for fp in board.GetFootprints():
         for pad in fp.Pads():
+            if pad.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
+                p = pad.GetPosition()
+                d = round(to_mm(pad.GetDrillSize().x), 2)
+                holes.append((to_mm(p.x), to_mm(p.y), d))
+                npth.append((to_mm(p.x), to_mm(p.y), d))
+                continue
             if not pad.IsOnLayer(pcbnew.B_Cu):
                 continue
             g = polyset_to_shapely(pad.GetEffectivePolygon())
@@ -87,7 +94,7 @@ def read_board(path):
     ops = pcbnew.SHAPE_POLY_SET()
     board.GetBoardPolygonOutlines(ops)
     outline = polyset_to_shapely(ops)
-    return dict(items=items, pads=pads, holes=holes, outline=outline, jumpers=jumpers)
+    return dict(items=items, pads=pads, holes=holes, npth=npth, outline=outline, jumpers=jumpers)
 
 
 # ------------------------------------------------------------- koordinat dönüşümü
@@ -298,13 +305,26 @@ def tab_intervals(length, n_tabs, tab_w):
     return [((i + 0.5) * length / n_tabs - tab_w / 2, (i + 0.5) * length / n_tabs + tab_w / 2) for i in range(n_tabs)]
 
 
-def write_cutout(board_m, args, title, out, tool_d):
+def write_cutout(board_m, npth_m, args, title, out, tool_d):
     g = GCode(f"{title} - kart kesimi (freze {tool_d} mm)", args,
               f"{tool_d} mm parmak freze, toplam derinlik {args.cut_depth} mm, paso {args.cut_step} mm")
     poly = board_m if isinstance(board_m, Polygon) else max(board_m.geoms, key=lambda p: p.area)
     outer = Polygon(poly.exterior.coords).buffer(tool_d / 2.0, resolution=24)
     rings = [("dis", list(outer.exterior.coords), True)]
     skipped = []
+    # Vida delikleri: freze delikten küçükse çember üzerinde oyulur, eşitse dalınır
+    for x, y, d in npth_m:
+        if tool_d > d + 0.05:
+            g.comment(f"UYARI: {d} mm vida deligi bu frezeden kucuk, ATLANDI. Matkapla acin")
+            skipped.append(None)
+            continue
+        r = (d - tool_d) / 2.0
+        if r < 0.05:
+            rings.append(("vida", [(x, y), (x, y)], False))
+        else:
+            n = 24
+            ring = [(x + r * math.cos(2 * math.pi * i / n), y + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
+            rings.append(("vida", ring + [ring[0]], False))
     for interior in poly.interiors:
         inner = Polygon(interior.coords).buffer(-tool_d / 2.0, resolution=24)
         if inner.is_empty or inner.area < 1e-3:
@@ -316,6 +336,8 @@ def write_cutout(board_m, args, title, out, tool_d):
     # İç kesimler önce (kart sabitken), dış hat sonra (sekmelerle)
     rings.sort(key=lambda r: r[0] == "dis")
     for b in skipped:
+        if b is None:
+            continue
         g.comment(f"UYARI: {b[2] - b[0]:.1f} x {b[3] - b[1]:.1f} mm yarik bu frezeye dar, ATLANDI. "
                   "Yarigi 1.0 mm freze dosyasiyla kesin veya elle acin")
     depths = []
@@ -325,7 +347,7 @@ def write_cutout(board_m, args, title, out, tool_d):
         depths.append(z)
     tab_top = args.cut_depth - args.tab_height
     for kind, ring, tabs in rings:
-        g.comment(f"{'Dis hat (sekmeli)' if tabs else 'Ic kesim / yarik'}")
+        g.comment({"dis": "Dis hat, sekmeli", "yarik": "Ic kesim / yarik", "vida": "Vida deligi"}[kind])
         line = LineString(ring)
         L = line.length
         tabs_iv = tab_intervals(L, args.tabs, args.tab_width) if tabs else []
@@ -452,9 +474,10 @@ def run(key, args):
 
     holes_m = [(*frame.pt(x, y), d) for x, y, d in data["holes"]]
     drills = write_drills(holes_m, args, title, outdir, prefix)
+    npth_m = [(*frame.pt(x, y), d) for x, y, d in data["npth"]]
     for d in (1.0, 2.0, 3.175):
-        if write_cutout(board_m, args, title, os.path.join(outdir, f"{prefix}_03_kesim_freze_{d}mm.nc"), d):
-            print(f"[{key}] UYARI: {d} mm freze yarığa sığmıyor, o dosyada yarık atlandı")
+        if write_cutout(board_m, npth_m, args, title, os.path.join(outdir, f"{prefix}_03_kesim_freze_{d}mm.nc"), d):
+            print(f"[{key}] UYARI: {d} mm freze yarık/vida deliğine sığmıyor, o dosyada atlandı (dosyadaki nota bakın)")
     write_score(board_m, args, title, os.path.join(outdir, f"{prefix}_03_kesim_ALTERNATIF_vuc_cizgi.nc"))
     preview(data, frame, iso_paths, holes_m, 2.0, os.path.join(outdir, f"{prefix}_onizleme_cnc.png"), title)
 
