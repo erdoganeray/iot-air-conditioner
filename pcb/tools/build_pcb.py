@@ -141,6 +141,20 @@ def add_gnd_ring(board, gnd, w, h, inset, width=0.8):
         board.Add(t)
 
 
+def add_preroutes(board, nets, preroutes):
+    """Elle belirlenmiş kilitli izler: yönlendiricinin kendiliğinden bulmadığı geçitler için."""
+    for net, width, pts in preroutes:
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(V(x1, y1))
+            t.SetEnd(V(x2, y2))
+            t.SetWidth(mm(width))
+            t.SetLayer(pcbnew.B_Cu)
+            t.SetNet(nets[net])
+            t.SetLocked(True)
+            board.Add(t)
+
+
 def add_rule_area_fcu(board, w, h):
     """F.Cu'ya iz/via yasağı: Freerouting yalnızca alt yüzü (B.Cu) kullanır."""
     z = pcbnew.ZONE(board)
@@ -252,6 +266,7 @@ def build_board(spec):
     add_outline(board, spec["width"], spec["height"], spec["corner"], spec["slots"])
     if spec.get("gnd_ring"):
         add_gnd_ring(board, nets["GND"], spec["width"], spec["height"], spec["gnd_ring"])
+    add_preroutes(board, nets, spec.get("preroutes", []))
     add_rule_area_fcu(board, spec["width"], spec["height"])
     for (x1, y1, x2, y2) in spec["slots"]:
         add_slot_keepout(board, x1, y1, x2, y2, 0.3)
@@ -378,6 +393,23 @@ def unconnected(board):
     return board.GetConnectivity().GetUnconnectedCount(False)
 
 
+def unconnected_nets(board, workdir):
+    """DRC raporundan eksik bağlantısı olan ağların adları."""
+    rep = os.path.join(workdir, "eksik.txt")
+    pcbnew.WriteDRCReport(board, rep, pcbnew.EDA_UNITS_MILLIMETRES, True)
+    nets, inside = set(), False
+    for line in open(rep):
+        if line.startswith("[unconnected_items]"):
+            inside = True
+        elif line.startswith("["):
+            inside = False
+        elif inside:
+            m = re.search(r"\[([^\]]+)\]", line)
+            if m:
+                nets.add(m.group(1))
+    return nets
+
+
 def write_project(path):
     # KiCad proje dosyası (SaveBoard da oluşturur; kütüphane tablosunu ekle)
     d = os.path.dirname(path)
@@ -465,6 +497,19 @@ def build(key, do_route=True):
         n1 = unconnected(board)
         print(f"[{key}] 1. aşama (yalnız alt yüz) sonrası eksik bağlantı: {n1}")
         if n1:
+            # Eksiklerin hepsi GND ise dolgu onları bağlayabilir: deneme dolgusuyla kontrol et
+            trial = os.path.join(work, "deneme.kicad_pcb")
+            pcbnew.SaveBoard(trial, board)
+            tb = pcbnew.LoadBoard(trial)
+            tgnd = tb.FindNet("GND")
+            if tgnd and tgnd.GetNetCode() > 0:
+                add_gnd_zone(tb, tgnd, spec["width"], spec["height"])
+                tb.BuildConnectivity()
+                pcbnew.ZONE_FILLER(tb).Fill(tb.Zones())
+            n1 = unconnected(tb)
+            missing = unconnected_nets(tb, work) if n1 else set()
+            print(f"[{key}] GND dolgusuyla eksik bağlantı: {n1} {sorted(missing) if missing else ''}")
+        if n1:
             # 2. aşama: kalan bağlantılar için üst yüzde köprü teli (F.Cu iz = tel)
             for t in board.GetTracks():
                 t.SetLocked(True)
@@ -472,7 +517,14 @@ def build(key, do_route=True):
                 if z.GetIsRuleArea() and z.GetZoneName() == "TEK_YUZ":
                     board.Remove(z)
             route(board, spec, work, "2")
-            print(f"[{key}] 2. aşama (köprü telleri) sonrası eksik bağlantı: {unconnected(board)}")
+            # Dolgunun zaten bağladığı ağlar için çıkan köprü tellerini sil (ör. GND)
+            extra = [t for t in board.GetTracks()
+                     if (t.GetLayer() == pcbnew.F_Cu or t.GetClass() == "PCB_VIA") and t.GetNetname() not in missing]
+            for t in extra:
+                board.Remove(t)
+            if extra:
+                print(f"[{key}] gereksiz köprü parçası silindi: {len(extra)}")
+            print(f"[{key}] 2. aşama (köprü telleri) sonrası eksik bağlantı (dolgu hariç): {unconnected(board)}")
     # Bellekte oluşturulan kartta dolgu motoru çöker: kaydet, yeniden yükle, sonra doldur
     pcbnew.SaveBoard(pcb_path, board)
     write_project(pcb_path)

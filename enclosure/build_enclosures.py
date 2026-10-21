@@ -483,7 +483,7 @@ for (const d of DATA) {
   const e = new THREE.LineSegments(new THREE.EdgesGeometry(g, 35),
     new THREE.LineBasicMaterial({color: 0x30343b, transparent: true, opacity: .35, clippingPlanes: [clip]}));
   const grp = new THREE.Group(); grp.add(m); grp.add(e); scene.add(grp);
-  objs.push({d, grp}); box.expandByObject(grp);
+  objs.push({d, grp}); if (d.group === "kutu") box.expandByObject(grp);
 }
 const ctr = box.getCenter(new THREE.Vector3()), rad = box.getSize(new THREE.Vector3()).length() / 2;
 const ctl = new THREE.OrbitControls(cam, renderer.domElement); ctl.target.copy(ctr);
@@ -491,7 +491,7 @@ let exploded = q.get("explode") === "1";
 function applyExplode() { for (const o of objs) o.grp.position.z = exploded ? o.d.dz : 0; }
 function view(name) {
   const v = VIEWS[name] || VIEWS.on; const el = v[0] * Math.PI / 180, az = v[1] * Math.PI / 180;
-  const dist = rad * (exploded ? 3.9 : 2.5) * (v[2] || 1);
+  const dist = rad * (exploded ? 3.8 : 3.5) * (v[2] || 1);
   cam.position.set(ctr.x + dist * Math.cos(el) * Math.cos(az), ctr.y + dist * Math.cos(el) * Math.sin(az),
                    ctr.z + (exploded ? 10 : 0) + dist * Math.sin(el));
   ctl.target.set(ctr.x, ctr.y, ctr.z + (exploded ? 10 : 0)); ctl.update();
@@ -539,7 +539,7 @@ def viewer(name, parts, dummy, info, out_html):
                 dz = ex.get(k, 0)
             else:
                 dz = ex.get("ara_plaka", 0) if k in on_pcb else (lid if k in info.get("on_lid", ()) else 0)
-            entries.append(dict(name=k, label=LABELS.get(k, k), color=COLORS.get(k, (0.6, 0.6, 0.6)), dz=dz,
+            entries.append(dict(name=k, label=LABELS.get(k, k), color=COLORS.get(k, (0.6, 0.6, 0.6)), dz=dz, group=group,
                                 scale=0.01, hidden=False, pos=base64.b64encode(q.tobytes()).decode()))
     sx, sy, sz = info["size"]
     views = {"on": [24, 62], "arka": [24, -118], "ust": [80, -90], "alt": [-40, -60]}
