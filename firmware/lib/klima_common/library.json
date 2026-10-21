@@ -1,0 +1,10 @@
+{
+  "name": "klima_common",
+  "version": "1.0.0",
+  "description": "Hub ve sensör yazılımlarının ortak kodu: ESP-NOW protokolü, SHT31 sürücüsü, pil eğrisi",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "libArchive": false
+  }
+}
