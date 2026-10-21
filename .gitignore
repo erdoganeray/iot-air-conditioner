@@ -36,3 +36,6 @@ secrets.h
 
 # Hub: derlemede uretilen gomulu web uygulamasi
 firmware/hub/src/generated/
+
+# PCB ara dosyaları (DSN/SES)
+pcb/*/_work/

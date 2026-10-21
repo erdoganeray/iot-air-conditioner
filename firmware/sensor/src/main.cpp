@@ -31,11 +31,12 @@
 constexpr uint8_t kFwMajor = 1;
 constexpr uint8_t kFwMinor = 0;
 
-constexpr int kPinBattAdc = 3;    // D1 — pil bölücü (470k/470k)
-constexpr int kPinSensorPwr = 4;  // D2 — SHT31 beslemesi
-constexpr int kPinUsbSense = 5;   // D3 — USB var mı (100k/150k)
-constexpr int kPinSda = 6;        // D4
-constexpr int kPinScl = 7;        // D5
+// Pin görevleri tek yüzlü PCB'de izler kesişmesin diye seçildi (pcb/tools/boards.py)
+constexpr int kPinBattAdc = 4;     // D2 — pil bölücü 470k/470k (ADC1_CH4)
+constexpr int kPinUsbSense = 3;    // D1 — USB var mı, bölücü 100k/150k (derin uykudan uyandırır)
+constexpr int kPinSensorPwr = 20;  // D7 — SHT31 beslemesi
+constexpr int kPinSda = 21;        // D6
+constexpr int kPinScl = 7;         // D5
 
 // Pil bölücü oranı ve kalibrasyon katsayısı. Multimetreyle ölçüp karşılaştırarak
 // gerekirse platformio.ini içinden -DBATT_CAL=1.02 gibi düzeltin.
