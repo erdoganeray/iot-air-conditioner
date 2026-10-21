@@ -17,7 +17,7 @@ constexpr size_t kFileSize = sizeof(HistBin) * HistoryCore::kBins;
 #pragma pack(push, 1)
 struct AcEvent {
   uint32_t epoch;
-  uint8_t power;
+  uint8_t bits;   // bit0 açık, bit1 salınım, bit2-4 fan
   uint8_t mode;
   uint8_t temp2;  // derece x2
   uint8_t src;
@@ -28,7 +28,7 @@ struct EventFileHeader {
   uint16_t count;
 };
 #pragma pack(pop)
-constexpr uint32_t kEventMagic = 0x41435631;  // "ACV1"
+constexpr uint32_t kEventMagic = 0x41435632;  // "ACV2"
 
 HistoryCore s_core;
 AcEvent s_events[kMaxEvents];
@@ -178,7 +178,7 @@ bool queryJson(int src, uint32_t hours, uint32_t step_min, JsonObject out) {
 void logAc(const AcState& s, Source src) {
   AcEvent& e = s_events[s_ev_head];
   e.epoch = timekeeper::now();
-  e.power = s.power;
+  e.bits = uint8_t((s.power ? 1 : 0) | (s.swing ? 2 : 0) | ((uint8_t(s.fan) & 7) << 2));
   e.mode = uint8_t(s.mode);
   e.temp2 = uint8_t(s.temp * 2);
   e.src = uint8_t(src);
@@ -187,13 +187,27 @@ void logAc(const AcState& s, Source src) {
   saveEvents();
 }
 
+bool lastAc(AcState& s, Source& src, uint32_t& epoch) {
+  if (!s_ev_count) return false;
+  const AcEvent& e = s_events[(s_ev_head - 1 + kMaxEvents) % kMaxEvents];
+  s.power = e.bits & 1;
+  s.swing = e.bits & 2;
+  uint8_t fan = (e.bits >> 2) & 7;
+  s.fan = fan <= uint8_t(AcFan::kMax) ? AcFan(fan) : AcFan::kAuto;
+  s.mode = e.mode <= uint8_t(AcMode::kFan) ? AcMode(e.mode) : AcMode::kCool;
+  s.temp = clampAcTemp(e.temp2 / 2.0f);
+  src = Source(e.src);
+  epoch = e.epoch;
+  return true;
+}
+
 void eventsJson(JsonArray out, int max_items) {
   int n = s_ev_count < max_items ? s_ev_count : max_items;
   for (int i = 0; i < n; i++) {
     const AcEvent& e = s_events[(s_ev_head - 1 - i + kMaxEvents * 2) % kMaxEvents];
     JsonObject o = out.add<JsonObject>();
     o["t"] = e.epoch;
-    o["power"] = bool(e.power);
+    o["power"] = bool(e.bits & 1);
     o["mode"] = modeName(AcMode(e.mode));
     o["temp"] = e.temp2 / 2.0f;
     o["src"] = sourceName(Source(e.src));

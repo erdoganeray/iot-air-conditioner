@@ -395,8 +395,18 @@ void begin() {
   s_recv.enableIRIn();
   if (!LittleFS.exists("/ir")) LittleFS.mkdir("/ir");
   loadCommands();
-  g_rt.ac.state = g_cfg.ac_default;
-  g_rt.ac.state.power = false;
+  // Son bilinen klima durumunu geri yükle (hub yeniden başlasa da klima aynı durumda kalır)
+  AcState last;
+  Source src;
+  uint32_t ep;
+  if (history::lastAc(last, src, ep)) {
+    g_rt.ac.state = last;
+    g_rt.ac.last_src = src;
+    g_rt.ac.last_change_epoch = ep;
+  } else {
+    g_rt.ac.state = g_cfg.ac_default;
+    g_rt.ac.state.power = false;
+  }
   LOGI("IR hazir: %s", g_cfg.ir.raw_mode ? "ham komut modu"
                                           : (g_cfg.ir.protocol.length() ? g_cfg.ir.protocol.c_str()
                                                                         : "protokol yok"));

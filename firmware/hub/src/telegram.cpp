@@ -238,9 +238,12 @@ void task(void*) {
     bool ok = drainOut(*client, token);
     String body;
     if (ok) {
-      String path = String("/bot") + token + "/getUpdates?timeout=" + kPollTimeoutS +
-                    "&limit=5&offset=" + String(double(s_offset), 0) +
-                    "&allowed_updates=%5B%22message%22%2C%22callback_query%22%5D";
+      char q[160];
+      snprintf(q, sizeof(q),
+               "/getUpdates?timeout=%d&limit=5&offset=%lld"
+               "&allowed_updates=%%5B%%22message%%22%%2C%%22callback_query%%22%%5D",
+               kPollTimeoutS, (long long)s_offset);
+      String path = String("/bot") + token + q;
       ok = request(*client, path, nullptr, body);
     }
     if (!ok) {

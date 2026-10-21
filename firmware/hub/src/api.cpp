@@ -592,11 +592,28 @@ void broadcastEvent(const char* evt, JsonVariantConst data) {
   }
 }
 
+namespace {
+// Açılışta kullanılacak "son ayarlar"ı güncelle
+void rememberDefaults(const AcState& s) {
+  AcState& d = g_cfg.ac_default;
+  if (d.mode != s.mode || d.temp != s.temp || d.fan != s.fan || d.swing != s.swing) {
+    d.mode = s.mode;
+    d.temp = s.temp;
+    d.fan = s.fan;
+    d.swing = s.swing;
+    d.power = false;
+    config::markDirty();
+  }
+}
+}  // namespace
+
 bool setAc(JsonObjectConst r, uint8_t source, String& err) {
   Source src = Source(source);
-  AcState s = g_rt.ac.state;
-  bool want_power = r["power"].is<bool>() ? r["power"].as<bool>() : s.power;
-  if (want_power && !s.power) {
+  const AcState cur = g_rt.ac.state;
+  AcState s = cur;
+  const bool has_power = r["power"].is<bool>();
+  const bool want_power = has_power ? r["power"].as<bool>() : cur.power;
+  if (want_power && !cur.power) {
     // Kapalıyken açılıyorsa son kullanılan ayarlarla başla
     s = g_cfg.ac_default;
   }
@@ -621,33 +638,16 @@ bool setAc(JsonObjectConst r, uint8_t source, String& err) {
   }
   if (r["swing"].is<bool>()) s.swing = r["swing"];
 
-  if (!s.power && !g_rt.ac.state.power) {
-    // Klima zaten kapalı: yalnızca açılışta kullanılacak ayarları güncelle
-    AcState d = g_cfg.ac_default;
-    d.mode = s.mode;
-    d.temp = s.temp;
-    d.fan = s.fan;
-    d.swing = s.swing;
-    if (!d.sameAs(g_cfg.ac_default) || d.mode != g_cfg.ac_default.mode ||
-        d.temp != g_cfg.ac_default.temp) {
-      g_cfg.ac_default = d;
-      config::markDirty();
-    }
-    // Kapalıyken "kapat" isteği yine de gönderilir (kumanda ile senkron olmayabilir)
-    if (r["power"].is<bool>()) return ir::apply(s, src, err);
+  if (!s.power && !cur.power && !has_power) {
+    // Klima kapalıyken yalnızca ayar değişti: IR gönderme, açılış ayarı olarak sakla.
+    // (Açıkça "kapat" istenirse kumanda ile senkron olmayabileceği için yine gönderilir.)
+    rememberDefaults(s);
+    g_rt.ac.state = s;
     markStateDirty();
     return true;
   }
   if (!ir::apply(s, src, err)) return false;
-  if (s.power) {
-    AcState d = s;
-    d.power = false;
-    if (d.mode != g_cfg.ac_default.mode || d.temp != g_cfg.ac_default.temp ||
-        d.fan != g_cfg.ac_default.fan || d.swing != g_cfg.ac_default.swing) {
-      g_cfg.ac_default = d;
-      config::markDirty();
-    }
-  }
+  if (s.power) rememberDefaults(s);
   return true;
 }
 

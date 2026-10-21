@@ -20,6 +20,8 @@ void clearSource(int src);
 bool queryJson(int src, uint32_t hours, uint32_t step_min, JsonObject out);
 
 void logAc(const AcState& s, Source src);
+// Son kaydedilen klima durumu (yeniden başlatmada geri yüklemek için)
+bool lastAc(AcState& s, Source& src, uint32_t& epoch);
 void eventsJson(JsonArray out, int max_items);
 
 }  // namespace hub::history

@@ -45,7 +45,9 @@ constexpr int kPinScl = 7;        // D5
 constexpr float kBattDividerRatio = 2.0f;
 
 // Zamanlamalar
-constexpr uint32_t kAckTimeoutMs = 80;        // hub ACK bekleme süresi
+constexpr uint32_t kBurstWindowMs = 400;      // bilinen kanalda tekrar gönderim penceresi
+constexpr uint32_t kBurstShortMs = 120;       // hub uzun süredir yoksa kısaltılmış pencere
+constexpr uint32_t kBroadcastWindowMs = 120;  // yayın adresiyle ek deneme
 constexpr uint32_t kScanAckTimeoutMs = 40;    // tarama sırasında kanal başına
 constexpr uint8_t kScanEveryNthFailure = 6;   // ardışık hatada her 6 uyanışta bir tara
 constexpr uint32_t kCriticalSleepS = 6 * 3600;
@@ -231,20 +233,35 @@ static void radioStop() {
   WiFi.mode(WIFI_OFF);
 }
 
-// Paketi gönderir ve ACK bekler. unicast ise MAC katmanı başarısızlığında erken döner.
-static bool sendAndWait(const uint8_t* dest, const uint8_t* data, size_t len, uint16_t seq,
-                        uint32_t timeout_ms) {
+// Paketi window_ms boyunca kısa aralıklarla tekrar gönderir ve hub ACK'ini bekler.
+// Neden: hub'da Bluetooth ile WiFi aynı radyoyu paylaşır; hub birkaç milisaniyelik
+// aralıklarla "sağır" olabilir. Tekrarlar bu boşlukları kapatır.
+static bool sendBurst(const uint8_t* dest, const uint8_t* data, size_t len, uint16_t seq,
+                      uint32_t window_ms) {
   g_ack_ok = false;
-  g_send_done = false;
-  g_send_ok = false;
   g_wait_seq = seq;
-  if (esp_now_send(dest, data, len) != ESP_OK) return false;
-  bool unicast = memcmp(dest, kBroadcast, 6) != 0;
+  const bool unicast = memcmp(dest, kBroadcast, 6) != 0;
   uint32_t t0 = millis();
-  while (millis() - t0 < timeout_ms) {
-    if (g_ack_ok) return true;
-    if (unicast && g_send_done && !g_send_ok) return false;
-    delay(1);
+  while (millis() - t0 < window_ms) {
+    g_send_done = false;
+    g_send_ok = false;
+    if (esp_now_send(dest, data, len) != ESP_OK) {
+      delay(5);
+      continue;
+    }
+    // Gönderim sonucunu bekle (unicast'te hub'ın radyo katmanı onayı)
+    uint32_t ts = millis();
+    while (!g_send_done && millis() - ts < 20) {
+      if (g_ack_ok) return true;
+      delay(1);
+    }
+    // Hub paketi radyo katmanında aldıysa uygulama ACK'ini biraz daha uzun bekle
+    uint32_t wait = (unicast && g_send_ok) ? 60 : 8;
+    ts = millis();
+    while (millis() - ts < wait) {
+      if (g_ack_ok) return true;
+      delay(1);
+    }
   }
   return g_ack_ok;
 }
@@ -308,15 +325,14 @@ static bool transmit(uint16_t batt_mv, uint8_t batt_pct, uint8_t flags) {
     size_t len = klima::reportSize(rep.f.n_readings);
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&rep);
 
+    // Hub uzun süredir yanıt vermiyorsa (kapalı olabilir) pil için deneme penceresini kısalt
+    const uint32_t window = rtc.fail_streak >= 3 ? kBurstShortMs : kBurstWindowMs;
     bool ok = false;
-    // 1) Bilinen kanalda iki deneme (hub biliniyorsa doğrudan ona)
+    // 1) Bilinen kanalda tekrarlı gönderim (hub biliniyorsa doğrudan ona)
     const uint8_t* dest = rtc.hub_known ? rtc.hub_mac : kBroadcast;
-    for (int attempt = 0; attempt < 2 && !ok; attempt++) {
-      ok = sendAndWait(dest, bytes, len, seq, kAckTimeoutMs);
-      if (!ok) delay(15 + attempt * 20);
-    }
+    ok = sendBurst(dest, bytes, len, seq, window);
     // 2) Hub'ın yayın adresine yanıt verip vermediğini de dene (MAC değişmiş olabilir)
-    if (!ok && rtc.hub_known) ok = sendAndWait(kBroadcast, bytes, len, seq, kAckTimeoutMs);
+    if (!ok && rtc.hub_known) ok = sendBurst(kBroadcast, bytes, len, seq, kBroadcastWindowMs);
 
     // 3) Kanal taraması (pil harcamasın diye seyrek)
     if (!ok && pkt == 0) {
@@ -328,7 +344,7 @@ static bool transmit(uint16_t batt_mv, uint8_t batt_pct, uint8_t flags) {
         for (uint8_t ch = 1; ch <= 13 && !ok; ch++) {
           if (ch == orig) continue;
           setChannel(ch);
-          ok = sendAndWait(kBroadcast, bytes, len, seq, kScanAckTimeoutMs);
+          ok = sendBurst(kBroadcast, bytes, len, seq, kScanAckTimeoutMs);
           if (ok) {
             LOG("Hub kanal %u'de bulundu\n", ch);
             rtc.channel = ch;
