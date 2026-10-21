@@ -21,7 +21,7 @@ import os
 import sys
 
 import pcbnew
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon, box
+from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
