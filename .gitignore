@@ -33,3 +33,6 @@ Thumbs.db
 # Gizli bilgiler (asla commitlenmez)
 secrets.h
 *.secret
+
+# Hub: derlemede uretilen gomulu web uygulamasi
+firmware/hub/src/generated/
