@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="description" content="KlimaHub: klima kumandası ve sıcaklık/nem sensörleri">
+<title>KlimaHub</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #f3f5f9; --card: #ffffff; --fg: #0f172a; --muted: #64748b; --line: #e2e8f0;
+  --accent: #0ea5e9; --accent-fg: #ffffff; --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
+  --cool: #0ea5e9; --heat: #f97316; --dry: #14b8a6; --fan: #8b5cf6; --auto: #64748b;
+  --chip: #eef2f7; --shadow: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220; --card: #131c2e; --fg: #e2e8f0; --muted: #94a3b8; --line: #23304a;
+    --chip: #1c2740; --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+  #toast div { background: #334155; border: 1px solid #475569; }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--line); }
+header h1 { font-size: 18px; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.badge.ok { background: rgba(22,163,74,.15); color: var(--ok); }
+.badge.warn { background: rgba(217,119,6,.15); color: var(--warn); }
+.badge.bad { background: rgba(220,38,38,.15); color: var(--bad); }
+main { max-width: 720px; margin: 0 auto; padding: 12px 16px; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 14px 16px; margin-bottom: 12px; }
+.card h2 { font-size: 15px; margin: 0 0 10px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row.wrap { flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.hidden { display: none !important; }
+button, .btn { font: inherit; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+  background: var(--chip); color: var(--fg); min-height: 42px; }
+button.primary { background: var(--accent); color: var(--accent-fg); }
+button.danger { background: rgba(220,38,38,.12); color: var(--bad); }
+button:disabled { opacity: .5; cursor: default; }
+button.icon { min-width: 42px; padding: 8px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { padding: 8px 12px; border-radius: 99px; background: var(--chip); font-size: 14px; min-height: 38px; }
+.chip.on { background: var(--accent); color: #fff; }
+input, select, textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 10px; min-height: 42px; width: 100%; }
+input[type=checkbox] { width: auto; min-height: 0; }
+input[type=range] { padding: 0; }
+label.field { display: block; margin: 8px 0; }
+label.field > span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.switch { position: relative; width: 50px; height: 30px; flex: none; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: var(--line); border-radius: 99px; transition: .2s; }
+.switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px;
+  border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(20px); }
+/* Klima kartı */
+.ac { text-align: center; }
+.ac .power { width: 84px; height: 84px; border-radius: 50%; font-size: 34px; margin: 4px auto 8px;
+  display: flex; align-items: center; justify-content: center; }
+.ac .power.on { background: var(--accent); color: #fff; box-shadow: 0 0 0 6px rgba(14,165,233,.18); }
+.ac .temp { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 6px 0 12px; }
+.ac .temp b { font-size: 52px; font-weight: 300; min-width: 130px; }
+.ac .temp button { width: 52px; height: 52px; border-radius: 50%; font-size: 26px; }
+.ac .chips { justify-content: center; }
+.mode-cool.on { background: var(--cool); } .mode-heat.on { background: var(--heat); }
+.mode-dry.on { background: var(--dry); } .mode-fan.on { background: var(--fan); } .mode-auto.on { background: var(--auto); }
+.sensors { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.sensor { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; }
+.sensor .name { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.sensor .t { font-size: 30px; font-weight: 300; }
+.sensor .h { font-size: 15px; }
+.sensor.off { opacity: .55; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--muted); }
+.dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); } .dot.warn { background: var(--warn); }
+.list > div { padding: 10px 0; border-top: 1px solid var(--line); }
+.list > div:first-child { border-top: 0; }
+nav.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex;
+  background: var(--card); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+nav.tabbar button { flex: 1; background: none; border-radius: 0; padding: 8px 2px 6px; font-size: 11px;
+  color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 58px; }
+nav.tabbar button .i { font-size: 21px; line-height: 1; }
+nav.tabbar button.on { color: var(--accent); }
+#toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 20; display: flex; flex-direction: column; gap: 6px; width: min(92vw, 520px); pointer-events: none; }
+#toast div { background: #0f172a; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25); animation: fade .2s; }
+#toast div.err { background: #7f1d1d; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+dialog { border: 0; border-radius: var(--radius); padding: 0; width: min(92vw, 460px);
+  background: var(--card); color: var(--fg); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+dialog::backdrop { background: rgba(2,6,23,.55); }
+dialog form { padding: 16px; }
+dialog h3 { margin: 0 0 8px; }
+dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.days { display: flex; gap: 4px; }
+.days button { flex: 1; min-height: 34px; padding: 4px 0; font-size: 12px; border-radius: 8px; }
+.days button.on { background: var(--accent); color: #fff; }
+canvas { width: 100%; height: 260px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; margin-top: 6px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  background: var(--c); margin-right: 5px; vertical-align: -1px; }
+.banner { border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px;
+  background: rgba(217,119,6,.14); color: var(--warn); }
+.banner.bad { background: rgba(220,38,38,.12); color: var(--bad); }
+.connect { text-align: center; padding: 28px 16px; }
+.connect .logo { font-size: 56px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -3px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">KlimaHub</h1>
+  <span id="link-badge" class="badge">bağlı değil</span>
+</header>
+
+<main>
+  <!-- Bağlantı ekranı -->
+  <section id="view-connect" class="connect">
+    <div class="logo">❄️</div>
+    <h2>KlimaHub</h2>
+    <p id="connect-msg" class="muted">Hub'a bağlanın.</p>
+    <div id="connect-ble" class="hidden">
+      <button class="primary" id="btn-ble" style="width:100%;max-width:320px">🔵 Bluetooth ile bağlan</button>
+      <p class="small muted">Telefonunuzun Bluetooth'u açık olmalı. Hub listede <b>KlimaHub</b> adıyla görünür.</p>
+    </div>
+    <p id="ble-unsupported" class="small banner hidden">Bu tarayıcı Bluetooth (Web Bluetooth) desteklemiyor.
+      Android'de <b>Chrome</b> kullanın.</p>
+    <div id="connect-local" class="card hidden" style="text-align:left">
+      <h2>Evdeyken WiFi üzerinden</h2>
+      <p class="small">Telefon ve hub aynı WiFi ağındaysa yerel arayüzü açın:</p>
+      <p><a id="local-link" href="http://klima.local" class="btn">🏠 http://klima.local</a>
+        <a id="ip-link" href="#" class="btn hidden"></a></p>
+      <p class="small muted">Kurulum ağına (KlimaHub-XXXX, şifre <b>klima1234</b>) bağlıysanız:
+        <a href="http://192.168.4.1">http://192.168.4.1</a></p>
+    </div>
+  </section>
+
+  <!-- ANA -->
+  <section id="tab-home" class="tab hidden">
+    <div id="home-banners"></div>
+    <div class="card ac" id="ac-card">
+      <div class="row spread small muted"><span id="ac-src"></span><span id="ac-ir"></span></div>
+      <button class="power" id="ac-power" aria-label="Aç/Kapat">⏻</button>
+      <div id="ac-state" class="muted small">—</div>
+      <div class="temp">
+        <button data-temp="-1" aria-label="Azalt">−</button>
+        <b id="ac-temp">--</b>
+        <button data-temp="1" aria-label="Arttır">+</button>
+      </div>
+      <div class="chips" id="ac-modes">
+        <button class="chip mode-cool" data-mode="cool">❄️ Soğutma</button>
+        <button class="chip mode-dry" data-mode="dry">💧 Kurutma</button>
+        <button class="chip mode-heat" data-mode="heat">🔥 Isıtma</button>
+        <button class="chip mode-fan" data-mode="fan">🌀 Fan</button>
+        <button class="chip mode-auto" data-mode="auto">♻️ Oto</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <select id="ac-fan" class="grow" aria-label="Fan hızı">
+          <option value="auto">Fan: otomatik</option><option value="min">Fan: en düşük</option>
+          <option value="low">Fan: düşük</option><option value="medium">Fan: orta</option>
+          <option value="high">Fan: yüksek</option><option value="max">Fan: en yüksek</option>
+        </select>
+        <label class="row small"><span>Salınım</span>
+          <span class="switch"><input type="checkbox" id="ac-swing"><span></span></span></label>
+      </div>
+    </div>
+    <div class="sensors" id="sensor-cards"></div>
+    <div class="card" style="margin-top:12px">
+      <h2>Otomasyon</h2>
+      <div class="row spread"><div class="grow"><b>🤖 Termostat</b><div class="small muted" id="q-thermo"></div></div>
+        <span class="switch"><input type="checkbox" id="q-thermo-en"><span></span></span></div>
+      <div class="row spread" style="margin-top:10px"><div class="grow"><b>💧 Nem (kurutma)</b><div class="small muted" id="q-dry"></div></div>
+        <span class="switch"><input type="checkbox" id="q-dry-en"><span></span></span></div>
+      <div class="small muted" id="q-override" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- GRAFİK -->
+  <section id="tab-chart" class="tab hidden">
+    <div class="card">
+      <div class="row wrap spread">
+        <div class="chips" id="chart-metric">
+          <button class="chip on" data-metric="temp">🌡️ Sıcaklık</button>
+          <button class="chip" data-metric="hum">💧 Nem</button>
+        </div>
+        <div class="chips" id="chart-range">
+          <button class="chip on" data-hours="24">24 sa</button>
+          <button class="chip" data-hours="72">3 gün</button>
+          <button class="chip" data-hours="168">7 gün</button>
+        </div>
+      </div>
+      <canvas id="chart" style="margin-top:10px"></canvas>
+      <div class="legend" id="chart-legend"></div>
+      <p class="small muted" id="chart-msg"></p>
+    </div>
+    <div class="card">
+      <h2>Klima olayları</h2>
+      <div class="list small" id="events"></div>
+    </div>
+  </section>
+
+  <!-- OTOMASYON -->
+  <section id="tab-auto" class="tab hidden">
+    <div class="card">
+      <div class="row spread"><h2 style="margin:0">🤖 Termostat</h2>
+        <span class="switch"><input type="checkbox" id="th-en"><span></span></span></div>
+      <p class="small muted">Seçilen sensöre göre klimayı açar/kapatır. Soğutmada sıcaklık hedef + eşiği aşınca açılır,
+        hedef − eşiğin altına inince kapanır.</p>
+      <div class="grid2">
+        <label class="field"><span>Sensör</span><select id="th-src"></select></label>
+        <label class="field"><span>Mod</span><select id="th-mode"><option value="cool">Soğutma</option><option value="heat">Isıtma</option></select></label>
+        <label class="field"><span>Oda hedefi (°C)</span><input type="number" id="th-target" step="0.5" min="10" max="35"></label>
+        <label class="field"><span>Eşik payı (± °C)</span><input type="number" id="th-hyst" step="0.1" min="0.2" max="3"></label>
+        <label class="field"><span>Klimaya gönderilecek derece</span><input type="number" id="th-actemp" step="0.5" min="16" max="30"></label>
+        <label class="field"><span>Fan</span><select id="th-fan"><option value="auto">Otomatik</option><option value="low">Düşük</option><option value="medium">Orta</option><option value="high">Yüksek</option></select></label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2 style="margin:0">💧 Nem (kurutma)</h2>
+        <span class="switch"><input type="checkbox" id="dry-en"><span></span></span></div>
+      <p class="small muted">Nem açılma eşiğini aşınca klima kurutma (dry) modunda açılır, kapanma eşiğinin altına inince kapanır.
+        Sizin elle açtığınız klimayı kapatmaz.</p>
+      <div class="grid2">
+        <label class="field"><span>Sensör</span><select id="dry-src"></select></label>
+        <label class="field"><span>Kurutmada derece</span><input type="number" id="dry-actemp" step="0.5" min="16" max="30"></label>
+        <label class="field"><span>Açılma nemi (%)</span><input type="number" id="dry-on" step="1" min="30" max="95"></label>
+        <label class="field"><span>Kapanma nemi (%)</span><input type="number" id="dry-off" step="1" min="20" max="90"></label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>⏱️ Koruma süreleri</h2>
+      <div class="grid2">
+        <label class="field"><span>En az açık kalma (dk)</span><input type="number" id="tm-on" min="0" max="60"></label>
+        <label class="field"><span>En az kapalı kalma (dk)</span><input type="number" id="tm-off" min="0" max="60"></label>
+      </div>
+      <label class="field"><span>Elle müdahaleden sonra otomasyon bekleme (dk)</span><input type="number" id="tm-ovr" min="0" max="720"></label>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2 style="margin:0">⏰ Zamanlayıcılar</h2><button id="sch-add">+ Ekle</button></div>
+      <div id="sch-list" class="list"></div>
+    </div>
+    <button class="primary" id="auto-save" style="width:100%">Otomasyonu kaydet</button>
+  </section>
+
+  <!-- KUMANDA -->
+  <section id="tab-ir" class="tab hidden">
+    <div class="card">
+      <h2>📡 Klima kumandası</h2>
+      <dl class="kv" id="ir-info"></dl>
+      <p class="small muted">En kolay yol: <b>Kumandayı öğret</b>'e basın, orijinal kumandayı hub'a doğrultup
+        herhangi bir tuşa (ör. 24°C soğutma) basın. Marka tanınırsa tüm ayarlar otomatik çalışır.</p>
+      <div class="row wrap">
+        <button class="primary" id="ir-learn">🎓 Kumandayı öğret</button>
+        <button id="ir-proto-btn">Protokolü elle seç</button>
+      </div>
+      <div id="ir-proto-box" class="hidden" style="margin-top:10px">
+        <div class="grid2">
+          <label class="field"><span>Protokol</span><select id="ir-proto"></select></label>
+          <label class="field"><span>Model</span><select id="ir-model"><option value="-1">varsayılan</option></select></label>
+        </div>
+        <button id="ir-proto-save">Kaydet</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2 style="margin:0">Ham komutlar</h2>
+        <label class="row small">Ham mod <span class="switch"><input type="checkbox" id="ir-raw"><span></span></span></label></div>
+      <p class="small muted">Klimanız tanınmazsa her durumu ayrı ayrı öğretin ve bir <b>rol</b> verin
+        (Kapat, Soğutma, Kurutma...). Ham mod açıkken otomasyon bu rolleri kullanır. Rolsüz komutlar (ör. "Turbo")
+        buradan tek dokunuşla gönderilebilir.</p>
+      <button id="ir-learn-raw">+ Ham komut öğret</button>
+      <div id="ir-cmds" class="list" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- AYARLAR -->
+  <section id="tab-settings" class="tab hidden">
+    <div class="card">
+      <h2>🌡️ Sensörler</h2>
+      <div id="set-sensors" class="list"></div>
+      <div class="row spread" style="margin-top:8px"><span class="small">Yeni sensörleri otomatik kabul et</span>
+        <span class="switch"><input type="checkbox" id="set-autoaccept"><span></span></span></div>
+    </div>
+    <div class="card">
+      <h2>📶 WiFi</h2>
+      <dl class="kv" id="wifi-info"></dl>
+      <div class="row wrap" style="margin-top:10px">
+        <button id="wifi-scan">🔍 Ağları tara</button>
+        <button id="wifi-manual">Elle ekle</button>
+        <button id="wifi-reconnect">Yeniden bağlan</button>
+      </div>
+      <div id="wifi-scan-list" class="list" style="margin-top:6px"></div>
+      <h2 style="margin-top:12px">Kayıtlı ağlar</h2>
+      <div id="wifi-saved" class="list"></div>
+      <p class="small muted">Hub yalnızca 2.4 GHz ağlara bağlanır. En fazla 3 ağ kaydedilir; bağlantı koparsa sırayla
+        ve hiç bırakmadan yeniden dener.</p>
+    </div>
+    <div class="card">
+      <div class="row spread"><h2 style="margin:0">✈️ Telegram</h2>
+        <span class="switch"><input type="checkbox" id="tg-en"><span></span></span></div>
+      <dl class="kv" id="tg-info" style="margin-top:8px"></dl>
+      <label class="field"><span>Bot token (@BotFather'dan)</span>
+        <input type="password" id="tg-token" placeholder="değiştirmek için yazın" autocomplete="off"></label>
+      <div class="small" style="margin:6px 0">Bildirimler:</div>
+      <div class="chips" id="tg-notify">
+        <button class="chip" data-n="battery">🔋 Pil</button>
+        <button class="chip" data-n="offline">📡 Sensör</button>
+        <button class="chip" data-n="power">⚡ Elektrik</button>
+        <button class="chip" data-n="wifi">📶 WiFi</button>
+        <button class="chip" data-n="auto">🤖 Otomasyon</button>
+      </div>
+      <div class="row wrap" style="margin-top:10px">
+        <button class="primary" id="tg-save">Kaydet</button>
+        <button id="tg-test">Test mesajı</button>
+        <button id="tg-clear">Sohbetleri sıfırla</button>
+      </div>
+      <p class="small muted">Kurulum: Telegram'da @BotFather → /newbot → token'ı buraya yapıştırın.
+        Sonra kendi botunuza <b>/start PIN</b> yazın (PIN = hub PIN'i).</p>
+      <label class="row small"><input type="checkbox" id="tg-insecure"> Sertifika doğrulamasını kapat (yalnızca bağlantı sorunu olursa)</label>
+    </div>
+    <div class="card">
+      <h2>⚙️ Hub</h2>
+      <label class="field"><span>Hub adı</span><input id="set-name" maxlength="24"></label>
+      <label class="field"><span>LED parlaklığı</span><input type="range" id="set-led" min="0" max="100"></label>
+      <div class="row spread"><span>Gece modu (LED'ler kapalı)</span>
+        <span class="switch"><input type="checkbox" id="set-night"><span></span></span></div>
+      <div class="grid2">
+        <label class="field"><span>Başlangıç</span><input type="time" id="set-ns"></label>
+        <label class="field"><span>Bitiş</span><input type="time" id="set-ne"></label>
+      </div>
+      <div class="row spread"><span class="grow">Bluetooth her zaman açık<br><span class="small muted">Kapalıyken yalnızca WiFi
+        yokken, açılıştan sonra 15 dk ve çift dokunmada açılır (sensör alımı daha güvenilir olur).</span></span>
+        <span class="switch"><input type="checkbox" id="set-ble"><span></span></span></div>
+      <h2 style="margin-top:12px">Hub sensörü</h2>
+      <div class="row spread"><span>Hub üzerindeki SHT31 kullanılsın</span>
+        <span class="switch"><input type="checkbox" id="set-hubsensor"><span></span></span></div>
+      <div class="grid2">
+        <label class="field"><span>Sıcaklık düzeltme (°C)</span><input type="number" step="0.1" id="set-hub-toff"></label>
+        <label class="field"><span>Nem düzeltme (%)</span><input type="number" step="0.5" id="set-hub-hoff"></label>
+      </div>
+      <button class="primary" id="set-save" style="width:100%">Kaydet</button>
+    </div>
+    <div class="card">
+      <h2>🔒 Güvenlik</h2>
+      <label class="field"><span>Yeni PIN (4-16 karakter)</span><input type="password" id="set-pin" autocomplete="new-password"></label>
+      <button id="set-pin-save">PIN'i değiştir</button>
+      <button id="forget-pin">Bu telefonda kayıtlı PIN'i unut</button>
+    </div>
+    <div class="card">
+      <h2>🛠️ Sistem</h2>
+      <dl class="kv" id="sys-info"></dl>
+      <div class="row wrap" style="margin-top:10px">
+        <button id="sys-refresh">Yenile</button>
+        <button id="sys-time">Telefon saatini gönder</button>
+        <button id="sys-ap">Kurulum ağını aç (10 dk)</button>
+        <button id="sys-reboot">Yeniden başlat</button>
+        <button class="danger" id="sys-factory">Fabrika ayarları</button>
+      </div>
+      <div id="ota-box" class="hidden" style="margin-top:12px">
+        <h2>Yazılım güncelle</h2>
+        <input type="file" id="ota-file" accept=".bin">
+        <button id="ota-go" style="margin-top:8px">Yükle</button>
+        <p class="small muted">PlatformIO derlemesi: firmware/hub/.pio/build/hub/firmware.bin</p>
+      </div>
+      <button id="disconnect" style="margin-top:12px;width:100%">Bağlantıyı kes</button>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar hidden" id="tabbar">
+  <button data-tab="home" class="on"><span class="i">🏠</span>Ana</button>
+  <button data-tab="chart"><span class="i">📈</span>Grafik</button>
+  <button data-tab="auto"><span class="i">🤖</span>Otomasyon</button>
+  <button data-tab="ir"><span class="i">📡</span>Kumanda</button>
+  <button data-tab="settings"><span class="i">⚙️</span>Ayarlar</button>
+</nav>
+
+<div id="toast"></div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlg-form">
+    <h3 id="dlg-title"></h3>
+    <div id="dlg-body"></div>
+    <div class="actions">
+      <button value="cancel" id="dlg-cancel">Vazgeç</button>
+      <button value="ok" class="primary" id="dlg-ok">Tamam</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+// ============================================================== yardımcılar
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("klima." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("klima." + k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem("klima." + k); } catch {} },
+};
+const MODE_TR = { cool: "Soğutma", heat: "Isıtma", dry: "Kurutma", fan: "Fan", auto: "Otomatik" };
+const FAN_TR = { auto: "otomatik", min: "en düşük", low: "düşük", medium: "orta", high: "yüksek", max: "en yüksek" };
+const SRC_TR = { app: "uygulama", telegram: "Telegram", remote: "kumanda", touch: "dokunmatik buton",
+  thermostat: "termostat", dry: "nem otomasyonu", schedule: "zamanlayıcı", serial: "USB", none: "—" };
+const ROLE_TR = { "": "rolsüz", off: "Kapat", on: "Aç", cool: "Soğutma", heat: "Isıtma", dry: "Kurutma", fan: "Fan", auto: "Otomatik" };
+const DAYS = ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"];
+const COLORS = ["#0ea5e9", "#f97316", "#14b8a6", "#8b5cf6", "#e11d48"];
+
+function toast(msg, err = false, ms = 3500) {
+  const d = document.createElement("div");
+  d.textContent = msg;
+  if (err) d.className = "err";
+  $("#toast").appendChild(d);
+  setTimeout(() => d.remove(), ms);
+}
+
+function ago(s) {
+  if (s == null) return "—";
+  if (s < 60) return "az önce";
+  if (s < 3600) return Math.round(s / 60) + " dk önce";
+  if (s < 86400) return Math.round(s / 3600) + " sa önce";
+  return Math.round(s / 86400) + " gün önce";
+}
+
+function dur(s) {
+  if (s < 60) return s + " sn";
+  if (s < 3600) return Math.round(s / 60) + " dk";
+  return (s / 3600).toFixed(1) + " sa";
+}
+
+function fmtTime(ep) {
+  if (!ep) return "—";
+  const d = new Date(ep * 1000);
+  return d.toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+const n1 = (v) => (v == null ? "—" : Number(v).toFixed(1));
+
+// Basit diyalog: alanlar [{id,label,type,value,options}] -> Promise<{...}|null>
+function dialog(title, fields = [], { ok = "Tamam", danger = false, html = "", info = false } = {}) {
+  return new Promise((resolve) => {
+    const dlg = $("#dlg");
+    $("#dlg-title").textContent = title;
+    let body = html;
+    for (const f of fields) {
+      body += `<label class="field"><span>${esc(f.label)}</span>`;
+      if (f.type === "select") {
+        body += `<select id="f-${f.id}">${f.options.map(([v, t]) =>
+          `<option value="${esc(v)}" ${String(v) === String(f.value) ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
+      } else {
+        body += `<input id="f-${f.id}" type="${f.type || "text"}" value="${esc(f.value ?? "")}" ${f.attrs || ""}>`;
+      }
+      body += `</label>`;
+    }
+    $("#dlg-body").innerHTML = body;
+    // ok === null: standart düğmeler gizlenir (gövdede kendi düğmesi olan diyaloglar)
+    $("#dlg-ok").textContent = ok || "Tamam";
+    $("#dlg-ok").className = danger ? "danger" : "primary";
+    $("#dlg-ok").classList.toggle("hidden", ok === null);
+    $("#dlg-cancel").classList.toggle("hidden", ok === null || info);
+    dlg.onclose = () => {
+      if (dlg.returnValue !== "ok") return resolve(null);
+      const out = {};
+      for (const f of fields) {
+        const el = $("#f-" + f.id);
+        out[f.id] = f.type === "number" ? parseFloat(el.value) : el.value;
+      }
+      resolve(out);
+    };
+    dlg.returnValue = "";
+    dlg.showModal();
+    const first = $("input,select", $("#dlg-body"));
+    if (first) setTimeout(() => first.focus(), 50);
+  });
+}
+
+// ============================================================= taşıyıcılar
+const NUS = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const NUS_RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+class BleTransport {
+  constructor() { this.kind = "ble"; this.buf = ""; this.chunk = 180; this.chain = Promise.resolve(); this.dec = new TextDecoder(); }
+  async connect(device) {
+    this.device = device || await navigator.bluetooth.requestDevice({
+      filters: [{ services: [NUS] }, { namePrefix: "Klima" }], optionalServices: [NUS] });
+    this.device.addEventListener("gattserverdisconnected", () => this.onclose && this.onclose());
+    const server = await this.device.gatt.connect();
+    const svc = await server.getPrimaryService(NUS);
+    this.rx = await svc.getCharacteristic(NUS_RX);
+    this.tx = await svc.getCharacteristic(NUS_TX);
+    this.tx.addEventListener("characteristicvaluechanged", (e) => this._data(e.target.value));
+    await this.tx.startNotifications();
+    this.label = this.device.name || "Bluetooth";
+  }
+  _data(dv) {
+    this.buf += this.dec.decode(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength), { stream: true });
+    let i;
+    while ((i = this.buf.indexOf("\n")) >= 0) {
+      const line = this.buf.slice(0, i).trim();
+      this.buf = this.buf.slice(i + 1);
+      if (!line) continue;
+      try { this.onmessage && this.onmessage(JSON.parse(line)); } catch (e) { console.warn("BLE JSON", e, line); }
+    }
+  }
+  send(obj) {
+    const data = new TextEncoder().encode(JSON.stringify(obj) + "\n");
+    // Web Bluetooth aynı anda tek GATT işlemine izin verir: sıraya koy
+    this.chain = this.chain.then(async () => {
+      for (let off = 0; off < data.length;) {
+        const part = data.slice(off, off + this.chunk);
+        try {
+          if (this.rx.writeValueWithoutResponse) await this.rx.writeValueWithoutResponse(part);
+          else await this.rx.writeValue(part);
+          off += part.length;
+        } catch (e) {
+          if (this.chunk > 20) { this.chunk = 20; continue; }  // küçük MTU: parçaları küçült
+          throw e;
+        }
+      }
+    }).catch((e) => console.warn("BLE yazma", e));
+    return this.chain;
+  }
+  close() { try { this.device && this.device.gatt.disconnect(); } catch {} }
+}
+
+class WsTransport {
+  constructor(url) { this.kind = "ws"; this.url = url; this.label = "WiFi"; }
+  connect() {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(this.url);
+      this.ws = ws;
+      const t = setTimeout(() => { ws.close(); reject(new Error("zaman aşımı")); }, 8000);
+      ws.onopen = () => { clearTimeout(t); resolve(); };
+      ws.onerror = () => { clearTimeout(t); reject(new Error("bağlanılamadı")); };
+      ws.onclose = () => this.onclose && this.onclose();
+      ws.onmessage = (e) => { try { this.onmessage && this.onmessage(JSON.parse(e.data)); } catch (err) { console.warn(err); } };
+    });
+  }
+  send(obj) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(obj)); }
+  close() { try { this.ws && this.ws.close(); } catch {} }
+}
+
+// ============================================================ hub istemcisi
+class Hub {
+  constructor() { this.nextId = 1; this.pending = new Map(); this.handlers = {}; this.t = null; }
+  on(evt, fn) { (this.handlers[evt] ||= []).push(fn); }
+  emit(evt, data) { for (const fn of this.handlers[evt] || []) { try { fn(data); } catch (e) { console.error(e); } } }
+  attach(t) {
+    this.t = t;
+    t.onmessage = (m) => {
+      if (m.evt) return this.emit(m.evt, m.data);
+      const p = this.pending.get(m.id);
+      if (!p) return;
+      this.pending.delete(m.id);
+      clearTimeout(p.timer);
+      m.ok ? p.res(m.data || {}) : p.rej(new Error(m.error || "hata"));
+    };
+    t.onclose = () => {
+      for (const p of this.pending.values()) { clearTimeout(p.timer); p.rej(new Error("bağlantı koptu")); }
+      this.pending.clear();
+      this.t = null;
+      this.emit("close");
+    };
+  }
+  call(cmd, params = {}, timeout = 12000) {
+    if (!this.t) return Promise.reject(new Error("bağlı değil"));
+    const id = this.nextId++;
+    return new Promise((res, rej) => {
+      const timer = setTimeout(() => { this.pending.delete(id); rej(new Error("zaman aşımı")); }, timeout);
+      this.pending.set(id, { res, rej, timer });
+      this.t.send({ id, cmd, ...params });
+    });
+  }
+}
+
+// ================================================================ uygulama
+const hub = new Hub();
+const S = { status: null, auto: null, tab: "home", servedByHub: false, chart: { metric: "temp", hours: 24 }, cmds: [], tg: null };
+
+async function act(promise, okMsg) {
+  try {
+    const r = await promise;
+    if (okMsg) toast(okMsg);
+    return r;
+  } catch (e) {
+    toast(e.message === "auth" ? "Yetki gerekli (PIN)" : e.message, true);
+    throw e;
+  }
+}
+
+function setLink(text, cls) {
+  const b = $("#link-badge");
+  b.textContent = text;
+  b.className = "badge " + (cls || "");
+}
+
+function showConnected(on) {
+  $("#view-connect").classList.toggle("hidden", on);
+  $("#tabbar").classList.toggle("hidden", !on);
+  for (const t of $$(".tab")) t.classList.add("hidden");
+  if (on) showTab(S.tab);
+}
+
+function showTab(name) {
+  S.tab = name;
+  for (const t of $$(".tab")) t.classList.toggle("hidden", t.id !== "tab-" + name);
+  for (const b of $$("#tabbar button")) b.classList.toggle("on", b.dataset.tab === name);
+  window.scrollTo(0, 0);
+  if (name === "chart") loadChart();
+  if (name === "auto") loadAuto();
+  if (name === "ir") loadIr();
+  if (name === "settings") loadSettings();
+}
+
+// ------------------------------------------------------------- bağlanma
+async function startSession(t) {
+  hub.attach(t);
+  const hello = await hub.call("hello");
+  let authed = hello.authed;
+  const saved = store.get("pin");
+  if (!authed && saved) {
+    try { await hub.call("auth", { pin: saved }); authed = true; } catch { store.del("pin"); }
+  }
+  while (!authed) {
+    const r = await dialog("PIN girin", [{ id: "pin", label: "Hub PIN'i (varsayılan 1234)", type: "password", attrs: 'inputmode="numeric" autocomplete="current-password"' }]);
+    if (!r) { t.close(); throw new Error("PIN girilmedi"); }
+    try { await hub.call("auth", { pin: r.pin }); authed = true; store.set("pin", r.pin); }
+    catch (e) { toast(e.message, true); }
+  }
+  setLink((t.kind === "ble" ? "🔵 " : "📶 ") + t.label, "ok");
+  $("#title").textContent = hello.name || "KlimaHub";
+  // Hub saati geçersizse telefonun saatini gönder
+  if (!hello.time_valid) await hub.call("time.set", { epoch: Math.floor(Date.now() / 1000) }).catch(() => {});
+  if (hello.default_pin) toast("Güvenlik için Ayarlar → Güvenlik'ten PIN'i değiştirin.", false, 6000);
+  const st = await hub.call("status");
+  onStatus(st);
+  showConnected(true);
+}
+
+async function connectBle() {
+  try {
+    setLink("bağlanıyor…");
+    const t = new BleTransport();
+    await t.connect();
+    await startSession(t);
+    S.lastBleDevice = t.device;
+  } catch (e) {
+    setLink("bağlı değil");
+    if (e.name !== "NotFoundError") toast("Bluetooth: " + e.message, true);
+  }
+}
+
+let wsRetry = 1000;
+async function connectWs() {
+  const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+  setLink("bağlanıyor…");
+  $("#connect-msg").innerHTML = '<span class="spin"></span> Hub\'a bağlanılıyor…';
+  try {
+    const t = new WsTransport(url);
+    await t.connect();
+    wsRetry = 1000;
+    await startSession(t);
+  } catch (e) {
+    setLink("bağlı değil", "bad");
+    $("#connect-msg").textContent = "Bağlanılamadı, tekrar deneniyor…";
+    setTimeout(connectWs, wsRetry);
+    wsRetry = Math.min(wsRetry * 2, 15000);
+  }
+}
+
+hub.on("close", () => {
+  setLink("bağlantı koptu", "bad");
+  showConnected(false);
+  if (S.servedByHub) setTimeout(connectWs, 1500);
+  else $("#connect-msg").textContent = "Bağlantı koptu. Tekrar bağlanın.";
+});
+
+hub.on("status", onStatus);
+hub.on("notify", (d) => toast(d.text, false, 6000));
+hub.on("learn", onLearn);
+hub.on("wifi.scan", onWifiScan);
+
+// ================================================================ ANA
+function onStatus(st) {
+  S.status = st;
+  if (st.hub && st.hub.wifi && st.hub.wifi.ip) store.set("ip", st.hub.wifi.ip);
+  renderHome();
+  if (S.tab === "settings") renderSettingsStatus();
+  if (S.tab === "ir") renderIrInfo();
+}
+
+function batteryIcon(p, usb) {
+  if (usb) return "🔌" + (p != null ? p + "%" : "");
+  if (p == null) return "";
+  return (p <= 15 ? "🪫" : "🔋") + p + "%";
+}
+
+function renderHome() {
+  const st = S.status;
+  if (!st) return;
+  const ac = st.ac.state;
+  $("#title").textContent = st.hub.name;
+  // Uyarı şeritleri
+  const w = st.hub.wifi;
+  let ban = "";
+  if (w.state !== "connected") {
+    ban += `<div class="banner">📶 Hub WiFi'a bağlı değil${w.outage_s ? " (" + dur(w.outage_s) + ")" : ""}. ` +
+      (w.configured ? `Yeniden deniyor${w.retry_in ? ", sonraki deneme " + w.retry_in + " sn" : ""}. ` : "WiFi ayarı yok. ") +
+      `Klima ve sensörler çalışmaya devam eder.</div>`;
+  }
+  if (!st.hub.time_valid) ban += `<div class="banner">🕒 Hub saati ayarlı değil: grafik ve zamanlayıcılar bekliyor.</div>`;
+  if (!st.ac.ir.ready) ban += `<div class="banner bad">📡 Klima henüz tanıtılmadı. <b>Kumanda</b> sekmesinden kumandayı öğretin.</div>`;
+  if (st.hub.power && !st.hub.power.usb && st.hub.power.battery) ban += `<div class="banner">⚡ Hub pille çalışıyor (%${st.hub.power.batt_pct}).</div>`;
+  if (st.ac.ir.learning) ban += `<div class="banner">🎓 Öğrenme modu: kumandayı hub'a doğrultup bir tuşa basın (${st.ac.ir.learn_remaining || 0} sn).</div>`;
+  $("#home-banners").innerHTML = ban;
+
+  // Klima
+  const pw = $("#ac-power");
+  pw.classList.toggle("on", ac.power);
+  $("#ac-state").textContent = ac.power ? `Açık — ${MODE_TR[ac.mode]}, fan ${FAN_TR[ac.fan]}` : "Kapalı (açınca bu ayarlar kullanılır)";
+  if (!S.pendingTemp) $("#ac-temp").textContent = Number(ac.temp).toFixed(ac.temp % 1 ? 1 : 0) + "°";
+  for (const b of $$("#ac-modes button")) b.classList.toggle("on", ac.power && b.dataset.mode === ac.mode);
+  $("#ac-fan").value = ac.fan;
+  $("#ac-swing").checked = !!ac.swing;
+  $("#ac-src").textContent = st.ac.changed ? `${SRC_TR[st.ac.src] || st.ac.src} · ${fmtTime(st.ac.changed)}` : "";
+  const ir = st.ac.ir;
+  $("#ac-ir").textContent = ir.mode === "raw" ? "ham komut modu" : (ir.protocol || "protokol yok");
+
+  // Sensörler
+  $("#sensor-cards").innerHTML = st.sensors.map((s) => {
+    const online = s.online && s.temp != null;
+    const meta = s.kind === "hub" ? (s.enabled ? (online ? ago(s.age_s) : "sensör yok") : "kapalı")
+      : (s.seen_s != null ? ago(s.seen_s) : "henüz veri yok");
+    return `<div class="sensor ${online ? "" : "off"}">
+      <div class="name"><span><span class="dot ${s.online ? "ok" : "bad"}"></span> ${esc(s.name)}</span>
+        <span>${s.kind === "sensor" ? batteryIcon(s.batt_pct, s.usb) : ""}</span></div>
+      <div class="t">${online ? n1(s.temp) + "°" : "—"}</div>
+      <div class="h">💧 ${online ? Math.round(s.hum) + "%" : "—"}</div>
+      <div class="small muted">${meta}${s.sensor_error ? " · sensör hatası!" : ""}${s.low_batt ? " · pil zayıf" : ""}</div>
+    </div>`;
+  }).join("");
+
+  // Otomasyon özeti
+  const a = st.auto;
+  $("#q-thermo-en").checked = a.thermo.enabled;
+  $("#q-thermo").textContent = `${MODE_TR[a.thermo.mode]} · hedef ${a.thermo.target}°C · ${a.thermo.source_name}` +
+    (a.thermo.value != null ? ` (şu an ${a.thermo.value}°C)` : " (veri yok)");
+  $("#q-dry-en").checked = a.dry.enabled;
+  $("#q-dry").textContent = `%${a.dry.on} üstünde aç, %${a.dry.off} altında kapat · ${a.dry.source_name}` +
+    (a.dry.value != null ? ` (şu an %${Math.round(a.dry.value)})` : "");
+  let ov = "";
+  if (a.override_s > 0) ov = `✋ Elle müdahale: otomasyon ${dur(a.override_s)} bekliyor.`;
+  if (a.deferred) ov += " ⏳ Klimayı koruma süresi doluyor, komut bekletiliyor.";
+  $("#q-override").textContent = ov;
+}
+
+async function acSet(p) {
+  try { await hub.call("ac.set", p); } catch (e) { toast(e.message, true); }
+}
+
+$("#ac-power").onclick = () => acSet({ power: !S.status.ac.state.power });
+for (const b of $$("#ac-modes button")) b.onclick = () => acSet({ mode: b.dataset.mode, power: true });
+$("#ac-fan").onchange = (e) => acSet({ fan: e.target.value });
+$("#ac-swing").onchange = (e) => acSet({ swing: e.target.checked });
+let tempTimer = null;
+for (const b of $$("[data-temp]")) {
+  b.onclick = () => {
+    const cur = S.pendingTemp ?? S.status.ac.state.temp;
+    const v = Math.min(30, Math.max(16, cur + Number(b.dataset.temp)));
+    S.pendingTemp = v;
+    $("#ac-temp").textContent = v + "°";
+    clearTimeout(tempTimer);
+    tempTimer = setTimeout(async () => { const t = S.pendingTemp; await acSet({ temp: t }); S.pendingTemp = null; renderHome(); }, 700);
+  };
+}
+$("#q-thermo-en").onchange = (e) => act(hub.call("auto.set", { thermo: { enabled: e.target.checked } }), e.target.checked ? "Termostat açıldı" : "Termostat kapatıldı");
+$("#q-dry-en").onchange = (e) => act(hub.call("auto.set", { dry: { enabled: e.target.checked } }), e.target.checked ? "Nem otomasyonu açıldı" : "Nem otomasyonu kapatıldı");
+
+// ============================================================== GRAFİK
+for (const b of $$("#chart-metric button")) b.onclick = () => {
+  S.chart.metric = b.dataset.metric;
+  $$("#chart-metric button").forEach((x) => x.classList.toggle("on", x === b));
+  drawChart();
+};
+for (const b of $$("#chart-range button")) b.onclick = () => {
+  S.chart.hours = Number(b.dataset.hours);
+  $$("#chart-range button").forEach((x) => x.classList.toggle("on", x === b));
+  loadChart();
+};
+
+async function loadChart() {
+  if (!S.status) return;
+  const hours = S.chart.hours;
+  const step = hours <= 24 ? 15 : hours <= 72 ? 30 : 60;
+  $("#chart-msg").innerHTML = '<span class="spin"></span> yükleniyor…';
+  const series = [];
+  for (const s of S.status.sensors) {
+    if (s.kind === "hub" && !s.enabled) continue;
+    try {
+      const h = await hub.call("history", { src: s.id, hours, step_min: step }, 20000);
+      series.push({ name: s.name, ...h });
+    } catch (e) { $("#chart-msg").textContent = e.message; }
+  }
+  S.chart.series = series;
+  $("#chart-msg").textContent = series.length ? "" : "Henüz veri yok.";
+  drawChart();
+  try {
+    const ev = await hub.call("events", { max: 30 });
+    $("#events").innerHTML = ev.events.length ? ev.events.map((e) =>
+      `<div class="row spread"><span>${e.power ? "▶️ " + MODE_TR[e.mode] + " " + e.temp + "°C" : "⏹️ Kapandı"}</span>
+       <span class="muted">${SRC_TR[e.src] || e.src} · ${fmtTime(e.t)}</span></div>`).join("") : '<div class="muted">Kayıt yok.</div>';
+  } catch {}
+}
+
+function drawChart() {
+  const cv = $("#chart");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const series = S.chart.series || [];
+  const key = S.chart.metric;
+  const css = getComputedStyle(document.documentElement);
+  const fg = css.getPropertyValue("--muted").trim(), line = css.getPropertyValue("--line").trim();
+  let min = Infinity, max = -Infinity, t0 = Infinity, t1 = -Infinity;
+  for (const s of series) {
+    const arr = s[key] || [];
+    arr.forEach((v, i) => {
+      const t = s.t0 + i * s.step;
+      t0 = Math.min(t0, t); t1 = Math.max(t1, t);
+      if (v == null) return;
+      min = Math.min(min, v / 10); max = Math.max(max, v / 10);
+    });
+  }
+  $("#chart-legend").innerHTML = series.map((s, i) => `<span style="--c:${COLORS[i % COLORS.length]}">${esc(s.name)}</span>`).join("");
+  if (!isFinite(min)) { ctx.fillStyle = fg; ctx.font = "14px system-ui"; ctx.fillText("Veri yok", 16, 30); return; }
+  if (max - min < 2) { const m = (max + min) / 2; min = m - 1; max = m + 1; }
+  const padL = 38, padR = 10, padT = 10, padB = 24;
+  const x = (t) => padL + (t - t0) / Math.max(1, t1 - t0) * (W - padL - padR);
+  const y = (v) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+  ctx.font = "11px system-ui"; ctx.fillStyle = fg; ctx.strokeStyle = line; ctx.lineWidth = 1;
+  const steps = 4;
+  for (let i = 0; i <= steps; i++) {
+    const v = min + (max - min) * i / steps, yy = y(v);
+    ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
+    ctx.fillText(v.toFixed(key === "temp" ? 1 : 0) + (key === "temp" ? "°" : "%"), 2, yy + 4);
+  }
+  const span = t1 - t0, nx = W < 420 ? 3 : 4;
+  for (let i = 0; i <= nx; i++) {
+    const t = t0 + span * i / nx;
+    const d = new Date(t * 1000);
+    const lbl = span > 86400 * 1.5 ? d.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" }) + " " + String(d.getHours()).padStart(2, "0") + ":00"
+      : String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    ctx.textAlign = i === 0 ? "left" : i === nx ? "right" : "center";
+    ctx.fillText(lbl, i === 0 ? padL : i === nx ? W - padR : x(t), H - 6);
+  }
+  ctx.textAlign = "left";
+  series.forEach((s, si) => {
+    ctx.strokeStyle = COLORS[si % COLORS.length]; ctx.lineWidth = 2; ctx.beginPath();
+    let pen = false;
+    (s[key] || []).forEach((v, i) => {
+      if (v == null) { pen = false; return; }
+      const xx = x(s.t0 + i * s.step), yy = y(v / 10);
+      pen ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy);
+      pen = true;
+    });
+    ctx.stroke();
+  });
+}
+window.addEventListener("resize", () => { if (S.tab === "chart") drawChart(); });
+
+// =========================================================== OTOMASYON
+function sourceOptions(sel, value) {
+  const opts = [];
+  for (const s of S.status.sensors) opts.push([s.id, s.name]);
+  opts.push([255, "Ortalama (tümü)"]);
+  sel.innerHTML = opts.map(([v, t]) => `<option value="${v}" ${v == value ? "selected" : ""}>${esc(t)}</option>`).join("");
+}
+
+async function loadAuto() {
+  try {
+    const a = await hub.call("auto.get");
+    S.auto = a;
+    sourceOptions($("#th-src"), a.thermo.source);
+    sourceOptions($("#dry-src"), a.dry.source);
+    $("#th-en").checked = a.thermo.enabled;
+    $("#th-mode").value = a.thermo.mode;
+    $("#th-target").value = a.thermo.target;
+    $("#th-hyst").value = a.thermo.hyst;
+    $("#th-actemp").value = a.thermo.ac_temp;
+    $("#th-fan").value = ["auto", "low", "medium", "high"].includes(a.thermo.fan) ? a.thermo.fan : "auto";
+    $("#dry-en").checked = a.dry.enabled;
+    $("#dry-on").value = a.dry.on;
+    $("#dry-off").value = a.dry.off;
+    $("#dry-actemp").value = a.dry.ac_temp;
+    $("#tm-on").value = a.timing.min_on_min;
+    $("#tm-off").value = a.timing.min_off_min;
+    $("#tm-ovr").value = a.timing.override_min;
+    S.sched = a.schedules.map((x) => ({ ...x }));
+    renderSchedules();
+  } catch (e) { toast(e.message, true); }
+}
+
+const ACTIONS = [["on", "Klimayı aç"], ["off", "Klimayı kapat"], ["thermo_on", "Termostatı aç"], ["thermo_off", "Termostatı kapat"],
+  ["dry_on", "Nem oto. aç"], ["dry_off", "Nem oto. kapat"]];
+
+function renderSchedules() {
+  const list = $("#sch-list");
+  if (!S.sched.length) { list.innerHTML = '<div class="muted small">Zamanlayıcı yok.</div>'; return; }
+  list.innerHTML = S.sched.map((s, i) => `
+    <div data-i="${i}">
+      <div class="row">
+        <span class="switch"><input type="checkbox" data-f="enabled" ${s.enabled ? "checked" : ""}><span></span></span>
+        <input type="time" data-f="time" value="${esc(s.time)}" class="grow">
+        <button class="icon danger" data-del>🗑</button>
+      </div>
+      <select data-f="action" style="margin-top:6px">${ACTIONS.map(([v, t]) => `<option value="${v}" ${v === s.action ? "selected" : ""}>${t}</option>`).join("")}</select>
+      <div class="days" style="margin-top:6px">${DAYS.map((d, k) => `<button data-day="${k}" class="${s.days & (1 << k) ? "on" : ""}">${d}</button>`).join("")}</div>
+      <div class="row ${s.action === "on" ? "" : "hidden"}" style="margin-top:6px" data-onrow>
+        <select data-f="mode" class="grow">${Object.entries(MODE_TR).map(([v, t]) => `<option value="${v}" ${v === s.mode ? "selected" : ""}>${t}</option>`).join("")}</select>
+        <input type="number" data-f="temp" step="0.5" min="16" max="30" value="${s.temp}" style="width:90px"><span>°C</span>
+      </div>
+    </div>`).join("");
+}
+
+$("#sch-list").addEventListener("input", (e) => {
+  const row = e.target.closest("[data-i]"); if (!row) return;
+  const s = S.sched[row.dataset.i], f = e.target.dataset.f;
+  if (!f) return;
+  s[f] = e.target.type === "checkbox" ? e.target.checked : e.target.type === "number" ? parseFloat(e.target.value) : e.target.value;
+  if (f === "action") $("[data-onrow]", row).classList.toggle("hidden", s.action !== "on");
+});
+$("#sch-list").addEventListener("click", (e) => {
+  const row = e.target.closest("[data-i]"); if (!row) return;
+  const s = S.sched[row.dataset.i];
+  if (e.target.dataset.day != null) {
+    s.days ^= 1 << Number(e.target.dataset.day);
+    e.target.classList.toggle("on", !!(s.days & (1 << Number(e.target.dataset.day))));
+  } else if (e.target.hasAttribute("data-del")) {
+    S.sched.splice(Number(row.dataset.i), 1);
+    renderSchedules();
+  }
+});
+$("#sch-add").onclick = () => {
+  if (S.sched.length >= 16) return toast("En fazla 16 zamanlayıcı", true);
+  S.sched.push({ enabled: true, days: 127, time: "23:00", action: "off", mode: "cool", temp: 24 });
+  renderSchedules();
+};
+$("#auto-save").onclick = async () => {
+  const p = {
+    thermo: { enabled: $("#th-en").checked, source: Number($("#th-src").value), mode: $("#th-mode").value,
+      target: parseFloat($("#th-target").value), hyst: parseFloat($("#th-hyst").value),
+      ac_temp: parseFloat($("#th-actemp").value), fan: $("#th-fan").value },
+    dry: { enabled: $("#dry-en").checked, source: Number($("#dry-src").value), on: parseFloat($("#dry-on").value),
+      off: parseFloat($("#dry-off").value), ac_temp: parseFloat($("#dry-actemp").value) },
+    timing: { min_on_min: parseInt($("#tm-on").value), min_off_min: parseInt($("#tm-off").value), override_min: parseInt($("#tm-ovr").value) },
+    schedules: S.sched,
+  };
+  try { await act(hub.call("auto.set", p), "Otomasyon kaydedildi"); loadAuto(); } catch {}
+};
+
+// ============================================================= KUMANDA
+function renderIrInfo() {
+  const ir = S.status && S.status.ac.ir;
+  if (!ir) return;
+  $("#ir-info").innerHTML = `
+    <dt>Durum</dt><dd>${ir.ready ? "✅ hazır" : "❌ tanıtılmadı"}</dd>
+    <dt>Mod</dt><dd>${ir.mode === "raw" ? "Ham komutlar" : "Protokol"}</dd>
+    <dt>Protokol</dt><dd>${esc(ir.protocol || "—")}</dd>
+    <dt>Model</dt><dd>${esc(ir.model_name || (ir.model > 0 ? ir.model : "—"))}</dd>
+    <dt>Ham komut</dt><dd>${ir.commands}</dd>`;
+  $("#ir-raw").checked = ir.mode === "raw";
+  $("#ir-learn").disabled = ir.learning;
+}
+
+async function loadIr() {
+  renderIrInfo();
+  try {
+    const r = await hub.call("ir.cmds");
+    S.cmds = r.cmds;
+    renderCmds();
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderCmds() {
+  $("#ir-cmds").innerHTML = S.cmds.length ? S.cmds.map((c) => `
+    <div class="row" data-id="${c.id}">
+      <div class="grow"><b>${esc(c.name)}</b><div class="small muted">${ROLE_TR[c.role] || esc(c.role)}</div></div>
+      <button class="icon" data-send title="Gönder">▶️</button>
+      <button class="icon" data-edit title="Düzenle">✏️</button>
+      <button class="icon danger" data-del title="Sil">🗑</button>
+    </div>`).join("") : '<div class="muted small">Ham komut yok.</div>';
+}
+
+const ROLE_OPTS = [["", "rolsüz"], ["off", "Kapat"], ["on", "Aç (genel)"], ["cool", "Soğutma"], ["dry", "Kurutma"],
+  ["heat", "Isıtma"], ["fan", "Fan"], ["auto", "Otomatik"]];
+
+$("#ir-cmds").addEventListener("click", async (e) => {
+  const row = e.target.closest("[data-id]"); if (!row) return;
+  const id = Number(row.dataset.id), c = S.cmds.find((x) => x.id === id);
+  if (e.target.hasAttribute("data-send")) act(hub.call("ir.cmd.send", { id }), "Gönderildi");
+  if (e.target.hasAttribute("data-edit")) {
+    const r = await dialog("Komutu düzenle", [{ id: "name", label: "Ad", value: c.name },
+      { id: "role", label: "Rol (ör. cool:24 için elle yazabilirsiniz)", type: "select", value: c.role, options: ROLE_OPTS }]);
+    if (r) { await act(hub.call("ir.cmd.update", { id, name: r.name, role: r.role }), "Kaydedildi"); loadIr(); }
+  }
+  if (e.target.hasAttribute("data-del")) {
+    const r = await dialog(`"${c.name}" silinsin mi?`, [], { ok: "Sil", danger: true });
+    if (r) { await act(hub.call("ir.cmd.delete", { id }), "Silindi"); loadIr(); }
+  }
+});
+
+let learnDlgOpen = false;
+async function startLearn(params) {
+  try {
+    await hub.call("ir.learn", params);
+    learnDlgOpen = true;
+    dialog("🎓 Öğrenme modu", [], { ok: null,
+      html: `<p>Orijinal kumandayı hub'ın önüne (10-30 cm) doğrultup bir tuşa basın.</p>
+             <p class="small muted">${params.raw ? "Ham kayıt alınacak." : "Öneri: klimayı açan bir tuşa (ör. 24°C soğutma) basın."} 30 sn içinde bekleniyor…</p>
+             <p><span class="spin"></span></p>
+             <button type="button" id="learn-cancel">İptal</button>` });
+    $("#learn-cancel").onclick = () => { hub.call("ir.learn.cancel").catch(() => {}); $("#dlg").close("cancel"); learnDlgOpen = false; };
+  } catch (e) { toast(e.message, true); }
+}
+
+function onLearn(d) {
+  if (learnDlgOpen) { $("#dlg").close("cancel"); learnDlgOpen = false; }
+  if (!d.ok) return toast(d.error === "timeout" ? "Sinyal alınamadı (zaman aşımı)" : "Öğrenme başarısız: " + d.error, true, 5000);
+  if (d.kind === "protocol") {
+    dialog("✅ Klima tanındı", [], { ok: "Tamam", info: true,
+      html: `<p><b>${esc(d.protocol)}</b> ${d.model_name ? "· model " + esc(d.model_name) : ""}</p>
+             <p class="small muted">${esc(d.desc || "")}</p>
+             <p>Artık açma/kapama, mod, derece ve fan uygulamadan kontrol edilebilir. Çalışmazsa
+             <b>Protokolü elle seç</b> ile başka bir model deneyin.</p>` });
+  } else {
+    toast(`Ham komut kaydedildi: ${d.name} (${d.len} darbe)`, false, 5000);
+  }
+  if (S.tab === "ir") loadIr();
+}
+
+$("#ir-learn").onclick = () => startLearn({});
+$("#ir-learn-raw").onclick = async () => {
+  const r = await dialog("Ham komut öğret", [{ id: "name", label: "Ad (ör. Kapat, Soğutma 24)", value: "" },
+    { id: "role", label: "Rol", type: "select", value: "", options: ROLE_OPTS }]);
+  if (r) startLearn({ name: r.name, role: r.role, raw: true });
+};
+$("#ir-raw").onchange = (e) => act(hub.call("ir.mode.set", { raw: e.target.checked }), e.target.checked ? "Ham mod açık" : "Protokol modu").catch(() => { e.target.checked = !e.target.checked; });
+$("#ir-proto-btn").onclick = async () => {
+  const box = $("#ir-proto-box");
+  box.classList.toggle("hidden");
+  if (box.classList.contains("hidden")) return;
+  const r = await hub.call("ir.protocols").catch((e) => toast(e.message, true));
+  if (!r) return;
+  const cur = S.status.ac.ir.protocol;
+  const list = r.protocols.slice().sort();
+  $("#ir-proto").innerHTML = list.map((p) => `<option ${p === cur ? "selected" : ""}>${esc(p)}</option>`).join("");
+  if (!cur) { const f = list.find((p) => p.startsWith("FUJITSU")); if (f) $("#ir-proto").value = f; }
+  loadModels();
+};
+async function loadModels() {
+  const r = await hub.call("ir.models", { protocol: $("#ir-proto").value }).catch(() => ({ models: [] }));
+  const cur = S.status.ac.ir.model;
+  $("#ir-model").innerHTML = '<option value="-1">varsayılan</option>' +
+    r.models.map((m) => `<option value="${m.id}" ${m.id === cur ? "selected" : ""}>${esc(m.name)}</option>`).join("");
+}
+$("#ir-proto").onchange = loadModels;
+$("#ir-proto-save").onclick = () => act(hub.call("ir.protocol.set", { protocol: $("#ir-proto").value, model: Number($("#ir-model").value) }), "Protokol kaydedildi");
+
+// ============================================================== AYARLAR
+async function loadSettings() {
+  renderSettingsStatus();
+  try {
+    const [set, tg, wl] = await Promise.all([hub.call("settings.get"), hub.call("telegram.get"), hub.call("wifi.list")]);
+    S.settings = set; S.tg = tg;
+    $("#set-name").value = set.name;
+    $("#set-led").value = set.led.brightness;
+    $("#set-night").checked = set.led.night;
+    $("#set-ns").value = set.led.night_start;
+    $("#set-ne").value = set.led.night_end;
+    $("#set-ble").checked = set.ble_always;
+    $("#set-autoaccept").checked = set.auto_accept;
+    $("#set-hubsensor").checked = set.hub_sensor.enabled;
+    $("#set-hub-toff").value = set.hub_sensor.t_off;
+    $("#set-hub-hoff").value = set.hub_sensor.h_off;
+    renderTelegram();
+    $("#wifi-saved").innerHTML = wl.networks.length ? wl.networks.map((n) => `
+      <div class="row" data-ssid="${esc(n.ssid)}"><div class="grow">${esc(n.ssid)} <span class="small muted">kanal ${n.channel || "?"}</span></div>
+      <button class="icon danger" data-wdel>🗑</button></div>`).join("") : '<div class="muted small">Kayıtlı ağ yok.</div>';
+  } catch (e) { toast(e.message, true); }
+  loadSysInfo();
+  $("#ota-box").classList.toggle("hidden", !(hub.t && hub.t.kind === "ws"));
+}
+
+function renderSettingsStatus() {
+  const st = S.status; if (!st) return;
+  const w = st.hub.wifi;
+  $("#wifi-info").innerHTML = `
+    <dt>Durum</dt><dd>${w.state === "connected" ? "✅ bağlı" : w.state === "no_config" ? "ayar yok" : "⏳ " + (w.state === "connecting" ? "bağlanıyor" : "yeniden deneme bekleniyor")}</dd>
+    <dt>Ağ</dt><dd>${esc(w.ssid || "—")}</dd>
+    ${w.ip ? `<dt>IP</dt><dd>${esc(w.ip)}</dd><dt>Sinyal</dt><dd>${w.rssi} dBm</dd>` : ""}
+    <dt>Kanal</dt><dd>${w.ch}</dd>
+    <dt>Yeniden bağlanma</dt><dd>${w.reconnects} kez</dd>
+    ${w.outage_s ? `<dt>Kesinti</dt><dd>${dur(w.outage_s)}</dd>` : ""}
+    <dt>Kurulum ağı</dt><dd>${st.hub.ap.on ? "açık: " + esc(st.hub.ap.ssid) : "kapalı"}</dd>`;
+  $("#set-sensors").innerHTML = st.sensors.filter((s) => s.kind === "sensor").map((s) => `
+    <div class="row" data-sid="${s.id}">
+      <div class="grow"><b>${esc(s.name)}</b> <span class="dot ${s.online ? "ok" : "bad"}"></span>
+        <div class="small muted">${esc(s.mac)} · her ${s.interval_min} dk · ${s.batt_mv ? (s.batt_mv / 1000).toFixed(2) + " V" : "pil ?"}
+        ${s.rssi ? " · " + s.rssi + " dBm" : ""}${s.fw ? " · v" + esc(s.fw) : ""}</div></div>
+      <button class="icon" data-sedit>✏️</button>
+      <button class="icon danger" data-sdel>🗑</button>
+    </div>`).join("") || '<div class="muted small">Henüz sensör yok. Sensörü pile bağlayın; hub onu otomatik ekler.</div>';
+}
+
+function renderTelegram() {
+  const tg = S.tg; if (!tg) return;
+  $("#tg-en").checked = tg.enabled;
+  $("#tg-insecure").checked = tg.insecure;
+  $("#tg-info").innerHTML = `<dt>Token</dt><dd>${tg.has_token ? "kayıtlı" : "yok"}</dd>
+    <dt>Yetkili sohbet</dt><dd>${tg.chats.length}</dd>
+    <dt>Bağlantı</dt><dd>${tg.status.ok ? "✅ çalışıyor" : tg.enabled ? "❌ " + esc(tg.status.error || "bekleniyor") : "kapalı"}</dd>
+    ${tg.status.queued ? `<dt>Bekleyen mesaj</dt><dd>${tg.status.queued}</dd>` : ""}`;
+  for (const b of $$("#tg-notify button")) b.classList.toggle("on", !!tg.notify[b.dataset.n]);
+}
+
+for (const b of $$("#tg-notify button")) b.onclick = () => { S.tg.notify[b.dataset.n] = !S.tg.notify[b.dataset.n]; renderTelegram(); };
+$("#tg-save").onclick = async () => {
+  const p = { enabled: $("#tg-en").checked, notify: S.tg.notify, insecure: $("#tg-insecure").checked };
+  const tok = $("#tg-token").value.trim();
+  if (tok) p.token = tok;
+  try { S.tg = await act(hub.call("telegram.set", p), "Telegram kaydedildi"); $("#tg-token").value = ""; renderTelegram(); } catch {}
+};
+$("#tg-test").onclick = () => act(hub.call("telegram.test"), "Test mesajı sıraya alındı");
+$("#tg-clear").onclick = async () => {
+  if (await dialog("Yetkili sohbetler silinsin mi?", [], { ok: "Sıfırla", danger: true })) {
+    S.tg = await act(hub.call("telegram.set", { chats: [] }), "Sohbetler sıfırlandı"); renderTelegram();
+  }
+};
+
+$("#set-save").onclick = () => act(hub.call("settings.set", {
+  name: $("#set-name").value, ble_always: $("#set-ble").checked, auto_accept: $("#set-autoaccept").checked,
+  led: { brightness: Number($("#set-led").value), night: $("#set-night").checked, night_start: $("#set-ns").value, night_end: $("#set-ne").value },
+  hub_sensor: { enabled: $("#set-hubsensor").checked, t_off: parseFloat($("#set-hub-toff").value) || 0, h_off: parseFloat($("#set-hub-hoff").value) || 0 },
+}), "Ayarlar kaydedildi");
+$("#set-autoaccept").onchange = (e) => act(hub.call("settings.set", { auto_accept: e.target.checked }), "Kaydedildi");
+$("#set-pin-save").onclick = async () => {
+  const pin = $("#set-pin").value;
+  if (pin.length < 4) return toast("PIN en az 4 karakter", true);
+  try { await act(hub.call("settings.set", { pin }), "PIN değiştirildi"); store.set("pin", pin); $("#set-pin").value = ""; } catch {}
+};
+$("#forget-pin").onclick = () => { store.del("pin"); toast("Kayıtlı PIN silindi"); };
+
+$("#set-sensors").addEventListener("click", async (e) => {
+  const row = e.target.closest("[data-sid]"); if (!row) return;
+  const id = Number(row.dataset.sid), s = S.status.sensors.find((x) => x.id === id);
+  if (e.target.hasAttribute("data-sedit")) {
+    const r = await dialog("Sensör ayarları", [
+      { id: "name", label: "Ad (ör. Salon)", value: s.name },
+      { id: "interval_min", label: "Ölçüm aralığı (dakika, 1-60)", type: "number", value: s.interval_min, attrs: 'min="1" max="60"' },
+      { id: "t_off", label: "Sıcaklık düzeltme (°C)", type: "number", value: s.t_off, attrs: 'step="0.1"' },
+      { id: "h_off", label: "Nem düzeltme (%)", type: "number", value: s.h_off, attrs: 'step="0.5"' }]);
+    if (r) {
+      await act(hub.call("sensor.set", { id, name: r.name, interval_min: Math.round(r.interval_min), t_off: r.t_off || 0, h_off: r.h_off || 0 }),
+        "Kaydedildi. Yeni aralık sensörün bir sonraki uyanışında geçerli olur.");
+    }
+  }
+  if (e.target.hasAttribute("data-sdel")) {
+    const r = await dialog(`"${s.name}" kaldırılsın mı?`, [], { ok: "Kaldır", danger: true,
+      html: '<p class="small muted">Otomatik kabul açıksa sensör veri gönderdiğinde yeniden eklenir.</p>' });
+    if (r) act(hub.call("sensor.remove", { id }), "Sensör kaldırıldı");
+  }
+});
+
+$("#wifi-saved").addEventListener("click", async (e) => {
+  const row = e.target.closest("[data-ssid]");
+  if (!row || !e.target.hasAttribute("data-wdel")) return;
+  if (await dialog(`"${row.dataset.ssid}" unutulsun mu?`, [], { ok: "Sil", danger: true })) {
+    await act(hub.call("wifi.remove", { ssid: row.dataset.ssid }), "Silindi"); loadSettings();
+  }
+});
+$("#wifi-scan").onclick = async () => {
+  $("#wifi-scan-list").innerHTML = '<div><span class="spin"></span> taranıyor…</div>';
+  try { await hub.call("wifi.scan"); } catch (e) { $("#wifi-scan-list").innerHTML = ""; toast(e.message, true); }
+};
+function onWifiScan(d) {
+  const nets = d.networks || [];
+  $("#wifi-scan-list").innerHTML = nets.length ? nets.map((n) => `
+    <div class="row" data-ssid="${esc(n.ssid)}" data-open="${n.open ? 1 : 0}" style="cursor:pointer">
+      <div class="grow">${n.open ? "🔓" : "🔒"} ${esc(n.ssid)}</div><span class="small muted">${n.rssi} dBm · k${n.ch}</span></div>`).join("")
+    : '<div class="muted small">Ağ bulunamadı.</div>';
+}
+async function addWifi(ssid, open) {
+  const fields = [];
+  if (!ssid) fields.push({ id: "ssid", label: "Ağ adı (SSID)", value: "" });
+  if (!open) fields.push({ id: "pass", label: "WiFi şifresi", type: "password", value: "" });
+  const r = fields.length ? await dialog(ssid ? `"${ssid}" ağına bağlan` : "Ağ ekle", fields, { ok: "Bağlan" }) : {};
+  if (!r) return;
+  await act(hub.call("wifi.add", { ssid: ssid || r.ssid, pass: r.pass || "" }),
+    "Kaydedildi, hub bağlanmayı deniyor. Bluetooth ile bağlıysanız durumu buradan izleyebilirsiniz.");
+  loadSettings();
+}
+$("#wifi-scan-list").addEventListener("click", (e) => {
+  const row = e.target.closest("[data-ssid]"); if (row) addWifi(row.dataset.ssid, row.dataset.open === "1");
+});
+$("#wifi-manual").onclick = () => addWifi(null, false);
+$("#wifi-reconnect").onclick = () => act(hub.call("wifi.reconnect"), "Yeniden bağlanılıyor");
+
+async function loadSysInfo() {
+  try {
+    const i = await hub.call("system.info");
+    const st = S.status;
+    $("#sys-info").innerHTML = `
+      <dt>Yazılım</dt><dd>v${esc(i.fw)} (IDF ${esc(i.idf)})</dd>
+      <dt>Çalışma süresi</dt><dd>${dur(i.uptime)}</dd>
+      <dt>Saat</dt><dd>${fmtTime(st.hub.time)} (${esc(st.hub.time_src)})</dd>
+      <dt>Güç</dt><dd>${st.hub.power.usb ? "adaptör" : "pil"} · ${st.hub.power.battery ? (st.hub.power.batt_mv / 1000).toFixed(2) + " V, %" + st.hub.power.batt_pct : "pil yok"}</dd>
+      <dt>Bellek</dt><dd>${Math.round(i.heap / 1024)} KB boş (en az ${Math.round(i.heap_min / 1024)})</dd>
+      <dt>Dosya sistemi</dt><dd>${Math.round(i.fs_used / 1024)} / ${Math.round(i.fs_total / 1024)} KB</dd>
+      <dt>ESP-NOW</dt><dd>${i.espnow.rx} paket, ${i.espnow.acks} ACK${i.espnow.unknown ? ", " + i.espnow.unknown + " bilinmeyen" : ""}</dd>
+      <dt>Bağlı istemci</dt><dd>BLE ${i.ble_clients}, WiFi ${i.ws_clients}</dd>
+      <dt>MAC</dt><dd>${esc(i.mac)}</dd>`;
+  } catch {}
+}
+$("#sys-refresh").onclick = loadSysInfo;
+$("#sys-time").onclick = () => act(hub.call("time.set", { epoch: Math.floor(Date.now() / 1000) }), "Saat gönderildi");
+$("#sys-ap").onclick = () => act(hub.call("system.ap", { minutes: 10 }), "Kurulum ağı 10 dk açık");
+$("#sys-reboot").onclick = async () => {
+  if (await dialog("Hub yeniden başlatılsın mı?", [], { ok: "Yeniden başlat" })) act(hub.call("system.reboot"), "Yeniden başlatılıyor…");
+};
+$("#sys-factory").onclick = async () => {
+  const r = await dialog("Fabrika ayarları", [{ id: "c", label: 'Onay için EVET yazın', value: "" }], { ok: "Sıfırla", danger: true,
+    html: '<p class="small">Tüm ayarlar, WiFi, öğrenilen komutlar ve geçmiş silinir.</p>' });
+  if (r && r.c.trim().toUpperCase() === "EVET") act(hub.call("system.factory_reset", { confirm: true }), "Sıfırlanıyor…");
+};
+$("#ota-go").onclick = async () => {
+  const f = $("#ota-file").files[0];
+  if (!f) return toast("Önce .bin dosyası seçin", true);
+  const fd = new FormData();
+  fd.append("firmware", f, f.name);
+  toast("Yükleniyor, lütfen bekleyin…", false, 8000);
+  try {
+    const r = await fetch("/update?pin=" + encodeURIComponent(store.get("pin", "")), { method: "POST", body: fd });
+    const j = await r.json();
+    j.ok ? toast("Güncellendi, hub yeniden başlıyor") : toast(j.error || "Hata", true);
+  } catch (e) { toast(e.message, true); }
+};
+$("#disconnect").onclick = () => { S.servedByHub = false; hub.t && hub.t.close(); };
+
+// ============================================================== başlangıç
+for (const b of $$("#tabbar button")) b.onclick = () => showTab(b.dataset.tab);
+$("#btn-ble").onclick = connectBle;
+
+(function init() {
+  const ip = store.get("ip");
+  if (ip) { const a = $("#ip-link"); a.href = "http://" + ip; a.textContent = "📍 http://" + ip; a.classList.remove("hidden"); }
+  const isHttpHost = location.protocol === "http:" && location.hostname;
+  if (isHttpHost) {
+    // Sayfayı hub'ın kendisi sunuyor: WebSocket ile bağlan
+    S.servedByHub = true;
+    connectWs();
+    return;
+  }
+  if (navigator.bluetooth) {
+    $("#connect-ble").classList.remove("hidden");
+    $("#connect-msg").textContent = "Bluetooth ile bağlanın veya evdeyken yerel adresi açın.";
+  } else {
+    $("#ble-unsupported").classList.remove("hidden");
+  }
+  $("#connect-local").classList.remove("hidden");
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
