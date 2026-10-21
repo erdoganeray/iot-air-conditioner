@@ -162,6 +162,27 @@ def add_rule_area_fcu(board, w, h):
     return z
 
 
+def add_slot_keepout(board, x1, y1, x2, y2, grow):
+    """Kart içi yarık çevresinde iz yasağı (yönlendirici kenar boşluğunu tam uygulasın diye)."""
+    z = pcbnew.ZONE(board)
+    z.SetIsRuleArea(True)
+    z.SetDoNotAllowTracks(True)
+    z.SetDoNotAllowVias(True)
+    z.SetDoNotAllowPads(False)
+    z.SetDoNotAllowCopperPour(False)
+    z.SetDoNotAllowFootprints(False)
+    ls = pcbnew.LSET()
+    ls.AddLayer(pcbnew.B_Cu)
+    ls.AddLayer(pcbnew.F_Cu)
+    z.SetLayerSet(ls)
+    z.SetZoneName("YARIK")
+    o = z.Outline()
+    o.NewOutline()
+    for x, y in [(x1 - grow, y1 - grow), (x2 + grow, y1 - grow), (x2 + grow, y2 + grow), (x1 - grow, y2 + grow)]:
+        o.Append(mm(x), mm(y))
+    board.Add(z)
+
+
 def add_gnd_zone(board, gnd, w, h):
     z = pcbnew.ZONE(board)
     z.SetLayer(pcbnew.B_Cu)
@@ -232,6 +253,8 @@ def build_board(spec):
     if spec.get("gnd_ring"):
         add_gnd_ring(board, nets["GND"], spec["width"], spec["height"], spec["gnd_ring"])
     add_rule_area_fcu(board, spec["width"], spec["height"])
+    for (x1, y1, x2, y2) in spec["slots"]:
+        add_slot_keepout(board, x1, y1, x2, y2, 0.3)
     title = board.GetTitleBlock()
     title.SetTitle(spec["title"])
     title.SetCompany("github.com/erdoganeray/iot-air-conditioner")

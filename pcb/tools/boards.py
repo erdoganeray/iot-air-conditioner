@@ -107,34 +107,37 @@ HUB = dict(
 # XIAO ESP32-C3 merkezi (12, 33), 180°: USB aşağı (+Y, kartın alt kenarı)
 #  sol sütun x=4.38 : 5V(40.62) GND(38.08) 3V3(35.54) D10(33.0) D9(30.46) D8(27.92) D7(25.38)
 #  sağ sütun x=19.62: D0(40.62) D1(38.08) D2(35.54) D3(33.0) D4(30.46) D5(27.92) D6(25.38)
+# Pin görevleri (firmware/sensor/src/main.cpp ile aynı), tek yüzde kesişmesiz olacak şekilde:
+#  D7=SENS_PWR (GPIO20), D6=SDA (GPIO21), D5=SCL (GPIO7), D2=BAT_SENSE (GPIO4), D1=USB_SENSE (GPIO3)
 SENSOR = dict(
     name="klima-sensor",
     title="KlimaHub - Sensor karti (XIAO ESP32-C3)",
-    width=24.0,
+    width=25.0,
     height=44.0,
     corner=2.0,
     # SHT31 bölgesini XIAO'dan ayıran ısıl yarık (x1, y1, x2, y2), iki yanda köprü kalır
-    slots=[(5.0, 12.4, 19.0, 14.6)],
+    slots=[(8.0, 12.4, 16.0, 14.6)],
+    gnd_ring=1.0,
     components=[
         comp("U1", XIAO, "XIAO ESP32-C3", 12.0, 33.0, 180, desc="Seeed XIAO ESP32-C3"),
-        comp("J3", H4, "SHT31", 8.19, 5.0, 90, desc="SHT31 modülü: VIN, GND, SCL, SDA"),
-        comp("J1", JST2, "BAT", 3.0, 19.0, 0, desc="LiPo pil 503035 (JST-PH 2.0)"),
-        comp("J2", H2, "XBAT", 10.73, 20.0, 90, desc="XIAO alt BAT+/BAT- pedlerine kablo"),
-        comp("R1", R1206, "470k", 12.0, 26.0, 0, "bottom", "Pil bölücü üst"),
-        comp("R2", R1206, "470k", 12.0, 29.5, 0, "bottom", "Pil bölücü alt"),
-        comp("C1", C1206, "100nF", 12.0, 33.0, 0, "bottom", "Pil ADC filtresi"),
-        comp("R3", R1206, "100k", 12.0, 36.5, 0, "bottom", "USB bölücü üst"),
-        comp("R4", R1206, "150k", 12.0, 40.0, 0, "bottom", "USB bölücü alt"),
+        comp("J3", H4, "SHT31", 8.19, 5.0, 90, desc="SHT31 modülü: GND, VIN, SDA, SCL"),
+        comp("J1", JST2, "BAT", 7.3, 18.2, 0, desc="LiPo pil 503035 (JST-PH 2.0)"),
+        comp("J2", H2, "XBAT", 14.0, 19.0, 90, desc="XIAO alt BAT+/BAT- pedlerine kablo"),
+        comp("R1", R1206, "470k", 10.0, 33.0, 0, "bottom", "Pil bölücü üst"),
+        comp("R2", R1206, "470k", 12.0, 36.6, 90, "bottom", "Pil bölücü alt"),
+        comp("C1", C1206, "100nF", 15.0, 36.6, 90, "bottom", "Pil ADC filtresi"),
+        comp("R3", R1206, "100k", 9.0, 40.6, 0, "bottom", "USB bölücü üst"),
+        comp("R4", R1206, "150k", 14.5, 40.6, 0, "bottom", "USB bölücü alt"),
     ],
     nets={
-        "GND": ["U1.13", "J1.2", "J2.2", "J3.2", "R2.2", "R4.2", "C1.2"],
+        "GND": ["U1.13", "J1.2", "J2.2", "J3.1", "R2.2", "R4.2", "C1.2"],
         "VBAT": ["J1.1", "J2.1", "R1.1"],
-        "BAT_SENSE": ["R1.2", "R2.1", "C1.1", "U1.2"],
+        "BAT_SENSE": ["R1.2", "R2.1", "C1.1", "U1.3"],
         "VBUS": ["U1.14", "R3.1"],
-        "USB_SENSE": ["R3.2", "R4.1", "U1.4"],
-        "SENS_PWR": ["U1.3", "J3.1"],
-        "SDA": ["U1.5", "J3.4"],
-        "SCL": ["U1.6", "J3.3"],
+        "USB_SENSE": ["R3.2", "R4.1", "U1.2"],
+        "SENS_PWR": ["U1.8", "J3.2"],
+        "SDA": ["U1.7", "J3.3"],
+        "SCL": ["U1.6", "J3.4"],
     },
     power_nets=["GND", "VBAT"],
 )
