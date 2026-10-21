@@ -1,0 +1,38 @@
+# Web uygulamasını (app/) GitHub Pages'te yayınlar:
+#   https://erdoganeray.github.io/iot-air-conditioner/
+# Bir kerelik ayar: GitHub → Settings → Pages → Source: "GitHub Actions"
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Yayın klasörünü hazırla
+        run: |
+          mkdir -p _site
+          cp app/index.html app/manifest.webmanifest app/sw.js app/icon.svg app/icon-192.png app/icon-512.png _site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
