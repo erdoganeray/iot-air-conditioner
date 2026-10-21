@@ -71,68 +71,75 @@ Sıra aralığı 15.24 mm (0.6"), pin aralığı 2.54 mm.
 
 ### 3.1 Pin eşlemesi (XIAO ESP32-S3)
 
+Pin görevleri, tek yüzlü kartta izler birbirini kesmeyecek şekilde seçildi
+(`firmware/hub/src/pins.h` ve `pcb/tools/boards.py` aynıdır).
+
 | XIAO pini | GPIO | Görev | Not |
 |---|---|---|---|
-| D0 | GPIO1 | Pil voltajı (ADC) | 220k/220k bölücü + 100 nF |
-| D1 | GPIO2 | USB (adaptör) var mı? (ADC) | 100k/150k bölücü. Derin uykudan uyandırma pini |
-| D2 | GPIO3 | Dokunmatik buton (TTP223 çıkışı) | Aktif HIGH |
-| D3 | GPIO4 | IR alıcı (VS1838B çıkışı) | |
-| D4 | GPIO5 | I²C SDA → SHT31 | |
-| D5 | GPIO6 | I²C SCL → SHT31 | |
-| D6 | GPIO43 | (boş) | Açılışta UART log'u verdiği için LED'e bağlanmadı |
-| D7 | GPIO44 | (boş) | |
-| D8 | GPIO7 | IR LED sürücü transistörü (S8050) | 150 Ω baz + 10k pull-down |
-| D9 | GPIO8 | Yeşil LED | 470 Ω |
-| D10 | GPIO9 | Kırmızı LED | 470 Ω |
+| D0 | GPIO1 | (boş) | |
+| D1 | GPIO2 | (boş) | |
+| D2 | GPIO3 | I²C SCL → SHT31 | |
+| D3 | GPIO4 | I²C SDA → SHT31 | |
+| D4 | GPIO5 | Dokunmatik buton (TTP223 çıkışı) | Aktif HIGH |
+| D5 | GPIO6 | IR alıcı (VS1838B çıkışı) | |
+| D6 | GPIO43 | Yeşil LED | 470 Ω. Açılışta kısa titrer (ROM log'u bu pinden çıkar), zararsız |
+| D7 | GPIO44 | IR LED sürücü transistörü (S8050) | 150 Ω baz + 10k pull-down. Açılışta giriştir: IR kapalı kalır |
+| D8 | GPIO7 | Kırmızı LED | 470 Ω |
+| D9 | GPIO8 | Pil voltajı (ADC1) | 220k/220k bölücü + 100 nF |
+| D10 | GPIO9 | USB (adaptör) var mı? (ADC1) | 100k/150k bölücü. Derin uykudan uyandırma pini |
+
+Seri port (USB-CDC) USB üzerinden çalışır. GPIO43/44'ün donanım UART'ı kullanılmaz.
 
 ### 3.2 Devre şeması (metin)
 
 ```
- PİL (503035, 3.7 V) ──JST-PH──┬───────────────► XIAO BAT+ (alt ped, kablo ile)
-                               │   GND ────────► XIAO BAT-
-                               │
-                               ├─ R1 220k ─┬─ R2 220k ─ GND
-                               │           └──► D0 (GPIO1)  + C1 100nF→GND
-                               │
-                               └─ D2 SS14 ─┐
- XIAO 5V ──────────────────────── D1 SS14 ─┴──► VIR (IR besleme, ~3.4–4.7 V)
-   │                                              ├─ C2 220µF + C3 100nF → GND
-   └─ R3 100k ─┬─ R4 150k ─ GND                    │
-               └──► D1 (GPIO2) + C4 100nF          ├─ R5 27Ω ─ IR LED1 ─┐
-                                                   └─ R6 27Ω ─ IR LED2 ─┤
-                                                                       C (Q1 S8050)
- D8 (GPIO7) ─ R7 150Ω ─► B (Q1)      B ─ R8 10k ─ GND                   E ─ GND
+ PİL (503035, 3.7 V) ─J1─┬─────────────────────► J2 + ─► XIAO alt yüz BAT+ (kablo)
+          (VBAT)         │   GND ──────────────► J2 - ─► XIAO alt yüz BAT-
+                         ├─ C2 220µF + C3 100nF → GND
+                         ├─ R1 220k ─┬─ R2 220k ─ GND
+                         │           └──► D9 (GPIO8)  + C1 100nF → GND
+                         │
+                         └─ R5 10Ω ─► IR LED1 ─► IR LED2 ─► C (Q1 S8050)   E ─ GND
+                                     (seri bağlı)
+ D7 (GPIO44) ─ R7 150Ω ─► B (Q1)       B ─ R8 10k ─ GND
 
- 3V3 ─┬─ VS1838B VCC     VS1838B OUT ──► D3 (GPIO4)      C5 100nF (VCC-GND)
-      ├─ SHT31 VIN       SHT31 SDA/SCL ──► D4/D5
-      └─ TTP223 VCC      TTP223 OUT ──► D2 (GPIO3)
+ XIAO 5V ─ R3 100k ─┬─ R4 150k ─ GND
+                    └──► D10 (GPIO9)
 
- D9 (GPIO8)  ─ R9 470Ω  ─ Yeşil LED ─ GND
- D10 (GPIO9) ─ R10 470Ω ─ Kırmızı LED ─ GND
+ 3V3 ─┬─ U2 VS1838B VCC (+ C5 100nF)    VS1838B OUT ──► D5 (GPIO6)
+      └─ J3 modül konnektörü ─► TTP223 VCC, SHT31 VIN
+
+ D8 (GPIO7)  ─ R10 470Ω ─ Kırmızı LED (LED3) ─ GND
+ D6 (GPIO43) ─ R9 470Ω  ─ Yeşil LED (LED4)   ─ GND
 ```
 
 **Tasarım kararları:**
 
-- **IR LED beslemesi iki kaynaktan (diyot-VEYA):** Adaptör takılıyken 5 V'tan, çıkarılınca
-  doğrudan pilden beslenir. Böylece pille çalışırken de klima kontrol edilebilir. 3V3
-  regülatörü yorulmaz, WiFi yayın tepeleriyle birleşip kartı resetlemez.
-- **2 IR LED paralel, her biri kendi direnciyle:** Adaptörde ≈115 mA, pilde ≈70 mA darbe
-  akımı. 3–4 m karşıdaki klima için fazlasıyla yeterli. Biri düz, diğeri ≈20° yukarı
-  bakacak şekilde bükülür (klima genelde yüksekte durur).
-- **220 µF kondansatör:** 38 kHz IR darbelerinin akım tepelerini karşılar.
+- **IR LED'ler doğrudan pilden (VBAT) beslenir, iki LED seri bağlıdır.** Adaptör takılıyken
+  XIAO'nun şarj devresi pili 4.2 V'ta tutar, adaptör çekilince pil zaten oradadır. Böylece
+  diyot gerekmez ve pille çalışırken de klima kontrol edilir. 3V3 regülatörü IR darbelerinden
+  etkilenmez, WiFi yayın tepeleriyle birleşip kartı resetlemez.
+  **Bu yüzden pil hub'da takılı olmalıdır**, pilsiz IR gönderilemez.
+- **Akım:** İki LED seri (2 × ≈1.3 V) + 10 Ω. Pil 4.2 V'ta ≈140 mA, 3.6 V'ta ≈80 mA darbe
+  akımı. 38 kHz taşıyıcı ve sinyal boşlukları nedeniyle ortalama akım bunun çok altındadır. 3–4 m
+  karşıdaki klima için yeterlidir. Seri bağlantı, aynı akımla iki LED'in ışığını verir.
+- **220 µF kondansatör** IR darbelerinin akım tepelerini karşılar. Yüksekliği en fazla 7 mm
+  olmalıdır (6.3 × 7 mm), kutuya sığması için.
 - **10k pull-down:** Açılışta GPIO boşta kalırken IR LED'lerin yanmasını engeller.
-- **Pil bölücü 220k+220k:** Pilden sürekli ≈8 µA çeker, hub için önemsiz.
+- **Pil bölücü 220k + 220k:** Pilden sürekli ≈9 µA çeker, hub için önemsiz.
 - **USB algılama:** Adaptör çekilince hub pil tasarrufu moduna geçer. Pil kritik seviyeye
   düşerse derin uykuya girer, adaptör takılınca bu pin sayesinde kendiliğinden uyanır.
+- **Durum LED'leri dik durur**, uzun bacaklarıyla kapaktaki deliklere kadar uzanır.
 
 ### 3.3 Konnektörler
 
-| Etiket | Pin sırası | Bağlanan |
+| Etiket | Pin sırası (1 → n) | Bağlanan |
 |---|---|---|
 | J1 BAT | `+`, `-` (JST-PH 2.0 mm) | 503035 LiPo. **Pil kablosu kutupları satıcıya göre ters olabilir, takmadan önce ölçün!** |
 | J2 XBAT | `+`, `-` | XIAO alt yüzündeki BAT+/BAT- pedlerine kısa kablo |
-| J3 SHT31 | `3V3`, `GND`, `SCL`, `SDA` | Sıcaklık/nem modülü (kutunun havalandırmalı bölmesinde) |
-| J4 TOUCH | `3V3`, `OUT`, `GND` | TTP223 dokunmatik modülü (kutu üst kapağının altında) |
+| J3 MODÜL | `TOUCH`, `SDA`, `SCL`, `GND`, `GND`, `3V3`, `3V3` | TTP223 (VCC→3V3, I/O→TOUCH, GND) ve SHT31 (VIN→3V3, GND, SCL, SDA). Kablolar deliklere doğrudan lehimlenir |
+
+Kartta 1 numaralı ped kare pedtir.
 
 ## 4. Sensör devresi
 
@@ -140,39 +147,47 @@ Sıra aralığı 15.24 mm (0.6"), pin aralığı 2.54 mm.
 
 | XIAO pini | GPIO | Görev | Not |
 |---|---|---|---|
-| D1 | GPIO3 | Pil voltajı (ADC1) | 470k/470k bölücü + 100 nF (≈4 µA) |
-| D2 | GPIO4 | SHT31 besleme | Sensör sadece ölçüm anında beslenir → uykuda 0 akım |
-| D3 | GPIO5 | USB var mı? (dijital) | 100k/150k bölücü. "Şarj oluyor" bilgisi |
-| D4 | GPIO6 | I²C SDA | |
+| D1 | GPIO3 | USB var mı? | 100k/150k bölücü. "Şarj oluyor" bilgisi ve derin uykudan uyandırma |
+| D2 | GPIO4 | Pil voltajı (ADC1) | 470k/470k bölücü + 100 nF (≈4 µA) |
 | D5 | GPIO7 | I²C SCL | |
-| D0 | GPIO2 | (boş) | Açılış (strapping) pini, bilerek kullanılmadı |
+| D6 | GPIO21 | I²C SDA | |
+| D7 | GPIO20 | SHT31 besleme | Sensör yalnızca ölçüm anında beslenir, uykuda akım çekmez |
+| D0, D8, D9 | GPIO2, 8, 9 | (boş) | Açılış (strapping) pinleri, bilerek kullanılmadı |
 
 ### 4.2 Devre şeması (metin)
 
 ```
- PİL ──JST-PH──┬──────────────► XIAO BAT+ (kablo)
-               ├─ R1 470k ─┬─ R2 470k ─ GND
-               │           └──► D1 (GPIO3) + C1 100nF
+ PİL ─J1─┬──────────────► J2 + ─► XIAO alt yüz BAT+ (kablo)
+         │   GND ───────► J2 - ─► XIAO alt yüz BAT-
+         └─ R1 470k ─┬─ R2 470k ─ GND
+                     └──► D2 (GPIO4) + C1 100nF → GND
  XIAO 5V ─ R3 100k ─┬─ R4 150k ─ GND
-                    └──► D3 (GPIO5)
- D2 (GPIO4) ──► SHT31 VIN      SHT31 SDA/SCL ──► D4/D5
+                    └──► D1 (GPIO3)
+ D7 (GPIO20) ──► J3 VIN (SHT31)    J3: GND, VIN, SDA ◄─ D6, SCL ◄─ D5
 ```
+
+J3 pin sırası: `GND`, `VIN`, `SDA`, `SCL`. Modülün kendi pin sırası farklı olabilir, kısa
+kablolarla bağlayın.
 
 ### 4.3 Çalışma döngüsü ve pil ömrü
 
 1. RTC zamanlayıcısıyla uyanır (varsayılan **10 dk**, uygulamadan 1–60 dk ayarlanır).
 2. SHT31'i besler, ölçer (≈20 ms), beslemeyi keser.
 3. Pil voltajını ve USB durumunu okur.
-4. ESP-NOW ile hub'a gönderir, hub'ın onayını (ACK) bekler (en fazla ≈80 ms).
-5. Onayla birlikte hub'dan yeni ayarları (ölçüm aralığı, saat) alır.
+4. ESP-NOW ile hub'a gönderir ve hub'ın uygulama onayını (ACK) bekler. Paketi en fazla
+   400 ms boyunca tekrarlar (hub Bluetooth ile meşgulse ilk denemeler kaçabilir). Onay
+   gelmezse yayın adresiyle 120 ms daha dener, sonra kanalları tarar (aşağıya bakın).
+5. Onayla birlikte hub'dan yeni ayarları (ölçüm aralığı, saat, kanal) alır.
 6. Derin uykuya döner.
 
-Uyanık kalma süresi ≈0.2–0.3 sn. 10 dk aralıkla günlük tüketim ≈1.4 mAh, yani 500 mAh pil
-**teorik olarak 10+ ay** dayanır. Pratikte pilin kendi kendine boşalması ve sıcaklık
-etkileri yüzünden 6–9 ay beklenmelidir.
+Normalde uyanık kalma süresi ≈0.15–0.3 sn'dir. 10 dk aralıkla günlük tüketim ≈1.5 mAh, yani
+500 mAh pil **teorik olarak 10 ay** dayanır. Pratikte pilin kendi kendine boşalması ve
+sıcaklık etkileri yüzünden 6–9 ay beklenmelidir. Hub kapalıyken (tarama yaptığı için) tüketim
+artar.
 
 **Hub'a ulaşılamazsa:** Ölçümler RTC belleğinde biriktirilir (64 ölçüm = 10 dk aralıkla
-≈10 saat). Hub'a tekrar ulaşınca toplu gönderilir, grafikte boşluk kalmaz.
+≈10 saat). Hub'a tekrar ulaşınca toplu gönderilir (paket başına 28 ölçüm), grafikte boşluk
+kalmaz. Pil kritik seviyedeyse (3.40 V) sensör 6 saatte bir uyanır.
 
 ## 5. Haberleşme
 
@@ -182,16 +197,16 @@ etkileri yüzünden 6–9 ay beklenmelidir.
   harcamaz, paket ≈1 ms'de gider. Pil ömrü WiFi'a göre ≈10 kat uzar.
 - **Kanal sorunu:** ESP-NOW'da iki tarafın aynı WiFi kanalında olması gerekir. Hub,
   modeme bağlıyken modemin kanalındadır. Modem kanal değiştirirse:
-  1. Sensör onay alamaz, bir kez tekrar dener.
+  1. Sensör onay alamaz, 400 ms boyunca tekrar dener, sonra yayın adresiyle dener.
   2. Yine alamazsa 1–13 arası kanalları tarar (her kanalda ≈40 ms).
   3. Hub'ı bulduğu kanalı RTC belleğe yazar, sonraki uyanmalarda doğrudan kullanır.
   4. Tarama pil harcamasın diye ardışık başarısızlıklarda taramayı seyreltir.
 - **Eşleşme:** Gerekmez. Sensör ilk açılışta yayın (broadcast) adresine gönderir. Hub
   yanıtladığında hub'ın MAC adresini öğrenir ve sonrasında doğrudan ona gönderir.
   Hub en fazla 4 sensörü otomatik kaydeder. Uygulamadan isim verilir veya silinir.
-- **Paketler** (`firmware/lib/klima_common/klima_protocol.h`):
+- **Paketler** (`firmware/lib/klima_common/src/klima_protocol.h`):
   - `REPORT` (sensör → hub): pil mV/%, bayraklar (USB, sensör hatası, ilk açılış),
-    mevcut aralık, açılış sayacı, firmware sürümü ve 1–25 ölçüm
+    mevcut aralık, açılış sayacı, firmware sürümü ve 1–28 ölçüm
     (`yaş_sn`, `sıcaklık×100`, `nem×100`).
   - `ACK` (hub → sensör): onaylanan sıra no, yeni ölçüm aralığı, Unix zamanı, kanal.
   - Her pakette sihirli sayı + protokol sürümü + ağ kimliği vardır. Komşunun aynı
@@ -310,3 +325,25 @@ durum gösterilir. Öğrenme modu ve kritik pil uyarısı gece de görünür.
 
 503035 (500 mAh) pille hub ≈4–5 saat çalışır. Elektrik kesintisinde klima da
 çalışmayacağı için pil, kısa kesintiler ve adaptörün çekilmesi için bir yedektir.
+
+## 11. Baskı devre kartları
+
+Her iki kart da **tek yüzlüdür**: bakır alt yüzdedir, CNC ile düz bakır plakadan kazınır.
+Bacaklı elemanlar üstten takılır, alttan lehimlenir. 1206 boyutundaki SMD dirençler ve
+kondansatörler doğrudan alt yüze lehimlenir (elle lehimlemesi kolay, büyük boy).
+
+- Kartlar kodla üretilir: `pcb/tools/boards.py` (yerleşim + bağlantı listesi) →
+  `pcb/tools/build_pcb.py` (KiCad kartı + Freerouting ile otomatik yönlendirme + DRC).
+- Kenarda kesintisiz GND halkası ve GND dolgusu vardır. Tek yüzde GND her bölgeye ulaşır,
+  izolasyon frezesi daha az yol keser.
+- İz genişliği 0.6 mm (güç 0.8 mm), boşluk 0.45 mm, pedler el yapımı kart için büyütüldü.
+- İki kart da **köprü teli olmadan** tamamen yönlendirildi.
+- Sensör kartında SHT31 bölgesini XIAO'dan ayıran bir **ısıl yarık** ve kutu vidası için M2
+  delik vardır.
+- G-code: `pcb/tools/cnc.py` (ayrıntı: `CNC.md`).
+
+## 12. Kutular
+
+Kutular `enclosure/build_enclosures.py` ile üretilir (CadQuery). Her kutu üç parçadır:
+gövde, kapak ve pil ile kartı ayıran ara plaka. Kapak 4 tırnakla geçer, 1 adet M2 vidayla
+sabitlenir. Ayrıntılar: `enclosure/README.md` ve `MONTAJ.md`.

@@ -56,7 +56,9 @@ HUB = dict(
         # Ön sıra: IR LED gövdeleri ön kenardan dışarı, ön duvardaki deliklere (bacaklar 90° bükülür)
         comp("LED1", LED5, "IR 940nm 5mm", 9.5, 3.8, 180, desc="IR verici LED"),
         comp("LED2", LED5, "IR 940nm 5mm", 19.0, 3.8, 180, desc="IR verici LED"),
-        comp("U2", H3, "VS1838B", 33.08, 3.8, 270, desc="IR alıcı (OUT, GND, VCC), bacaklar öne bükülür"),
+        # Dik takılır, kubbe öne bakar. Önde durup bakan kişinin solu kartın +x yönüdür:
+        # soldan sağa OUT (x=33.08), GND, VCC (x=28.0) — VS1838B'nin bacak sırasıyla aynı
+        comp("U2", H3, "VS1838B", 33.08, 3.8, 270, desc="IR alıcı (OUT, GND, VCC), dik, kubbe öne"),
         # Durum LED'leri dik durur, üst kapaktaki deliklerden görünür
         comp("LED3", LED3V, "Kirmizi 3mm", 11.2, 25.12, 0, desc="Durum LED'i (kırmızı)"),
         comp("LED4", LED3V, "Yesil 3mm", 41.5, 17.0, 0, desc="Durum LED'i (yeşil)"),
