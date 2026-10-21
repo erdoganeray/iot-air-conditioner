@@ -40,10 +40,15 @@ class Sht31 {
  public:
   explicit Sht31(uint8_t addr = 0x44) : addr_(addr) {}
 
+  // Modülün ADR pini bağlantısına göre adres 0x44 veya 0x45 olabilir: ikisi de denenir
   bool begin(TwoWire& wire) {
     wire_ = &wire;
+    if (probe()) return true;
+    addr_ = addr_ == 0x44 ? 0x45 : 0x44;
     return probe();
   }
+
+  uint8_t address() const { return addr_; }
 
   bool probe() {
     if (!wire_) return false;
