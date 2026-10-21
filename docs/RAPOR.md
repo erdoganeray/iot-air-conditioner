@@ -71,7 +71,7 @@ Telegram botu, KiCad kartları, Candle için G-code, 3D kutular, malzeme listesi
 | Gerçek donanım testi | Hiçbir parça çalışırken denenmedi | İlk açılışta seri port günlüğünü (115200) izle. Sorun olursa günlüğü bana gönder |
 | Bluetooth + WiFi + ESP-NOW aynı anda | Hub radyoyu paylaşıyor. Sensör paketleri 400 ms boyunca tekrar gönderiliyor | Sensör verisi kaçarsa Ayarlar → "Bluetooth her zaman açık" seçeneğini kapat |
 | Parça ölçüleri | Kutu bazı varsayımlarla çizildi: JST soket + fiş ≈10 mm, modül boyutları, 503035 ≤ 39 mm (koruma devresi dahil) | Parçalar gelince ölç. Farklıysa söyle |
-| IR menzili | Seri LED'ler ≈80–140 mA darbe. 3–4 m için yeterli olmalı | Yetmezse R5'i 10 Ω'dan 4.7 Ω'a düşür |
+| IR menzili | Seri LED'ler ≈80–140 mA darbe. 3–4 m için yeterli olmalı | Yetmezse R5'i 10 Ω'dan 6.8 Ω'a düşür (LED başına darbe akımı ≈150 mA'yı geçmesin) |
 | Dokunmatik | TTP223 1 mm PLA'nın arkasından algılamalı | Algılamazsa modülü çukurun altına daha sıkı yapıştır |
 | Android'de `klima.local` | Bazı sürümler açmıyor | Uygulamada görünen IP adresini kullan |
 | 3.175 mm freze | Sensör yarığı (2.2 mm) ve vida deliği bu frezeye dar | 1.0 / 2.0 mm freze dosyasını kullan veya elle aç |
