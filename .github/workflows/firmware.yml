@@ -1,6 +1,7 @@
 # Her push'ta hub ve sensör yazılımlarını derler, birim testlerini ve
 # web uygulaması duman testini çalıştırır. Derlenen .bin dosyaları
-# "Artifacts" bölümünden indirilebilir.
+# "Artifacts" bölümünden indirilebilir (*-full.bin: 0x0 adresine yüklenen birleşik dosya;
+# *-firmware.bin: OTA ile güncelleme dosyası).
 name: Firmware
 
 on:
@@ -36,6 +37,9 @@ jobs:
           mkdir -p out
           cp firmware/hub/.pio/build/hub/firmware.bin out/hub-firmware.bin
           cp firmware/sensor/.pio/build/sensor/firmware.bin out/sensor-firmware.bin
+          # Birleşik dosyalar: tarayıcıdan (esptool-js) 0x0 adresine tek seferde yüklenir
+          cp firmware/hub/.pio/build/hub/firmware-full.bin out/hub-firmware-full.bin
+          cp firmware/sensor/.pio/build/sensor/firmware-full.bin out/sensor-firmware-full.bin
       - uses: actions/upload-artifact@v4
         with:
           name: firmware
