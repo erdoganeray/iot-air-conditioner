@@ -1,0 +1,61 @@
+# Her push'ta hub ve sensör yazılımlarını derler, birim testlerini ve
+# web uygulaması duman testini çalıştırır. Derlenen .bin dosyaları
+# "Artifacts" bölümünden indirilebilir.
+name: Firmware
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ hashFiles('firmware/**/platformio.ini') }}
+      - name: PlatformIO kur
+        run: pip install platformio
+      - name: Birim testleri (masaüstü)
+        run: pio test -d firmware/hub -e native
+      - name: Hub derle
+        run: pio run -d firmware/hub -e hub
+      - name: Sensör derle
+        run: pio run -d firmware/sensor -e sensor
+      - name: Çıktıları topla
+        run: |
+          mkdir -p out
+          cp firmware/hub/.pio/build/hub/firmware.bin out/hub-firmware.bin
+          cp firmware/sensor/.pio/build/sensor/firmware.bin out/sensor-firmware.bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: out/
+
+  web-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıklar
+        run: |
+          pip install aiohttp playwright
+          python -m playwright install --with-deps chromium
+      - name: Duman testi (sahte hub + başsız Chromium)
+        run: CHROME_PATH=none python app/tools/ui_smoke_test.py /tmp/ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-screenshots
+          path: /tmp/ui/
