@@ -34,7 +34,8 @@ CNC'de kazıyıp, kutusunu 3D yazıcıda basıp kurabileceğiniz şekilde, başt
 ## Nereden başlamalı
 
 1. [docs/RAPOR.md](docs/RAPOR.md): projenin durumu ve yapılacaklar listesi
-2. [docs/MALZEME_LISTESI.md](docs/MALZEME_LISTESI.md): sipariş listesi
+2. [docs/SATIN_ALMA.md](docs/SATIN_ALMA.md): hazır sepet (3 site, bağlantılı) ·
+   [docs/MALZEME_LISTESI.md](docs/MALZEME_LISTESI.md): parçaların teknik tanımı
 3. Kartlar: [pcb/fab/README.md](pcb/fab/README.md) ile fabrikaya sipariş **veya**
    [docs/CNC.md](docs/CNC.md) ile CNC'de kazıma (Candle)
 4. [enclosure/README.md](enclosure/README.md): kutuların baskısı

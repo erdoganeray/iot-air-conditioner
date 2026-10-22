@@ -1,5 +1,8 @@
 # Malzeme Listesi
 
+> **Hazır sepet:** sitelere, fiyatlara ve bağlantılara göre düzenlenmiş sipariş listesi
+> [SATIN_ALMA.md](SATIN_ALMA.md) dosyasında. Bu belge parçaların teknik tanımıdır.
+
 Bir hub + iki sensör için gereken her şey. Parçaların hepsi Türkiye'deki elektronik
 mağazalarında (Direnc.net, Robotistan, Robolink Market, Motorobit, Samm Market, Özdisan,
 Komponentci vb.) bulunur. Fiyatlar sık değiştiği için yazılmadı. **Arama terimi** sütunu,
@@ -15,8 +18,8 @@ mağazanın arama kutusuna yazabileceğiniz ifadedir.
 | 1 | Seeed Studio **XIAO ESP32-S3** | 1 | `XIAO ESP32S3` | Hub. "Sense" (kameralı) sürümü **değil**, düz sürüm. 8 MB flash + 8 MB PSRAM |
 | 2 | Seeed Studio **XIAO ESP32-C3** | 2 | `XIAO ESP32C3` | Sensörler |
 | 3 | 2.4 GHz U.FL (IPEX) FPC anten | 3 | `U.FL FPC anten 2.4GHz` | XIAO kutusundan genelde çıkar. Ürün sayfasında "anten dahil" yazmıyorsa ayrıca alın. **Antensiz WiFi/BLE çalışmaz** |
-| 4 | LiPo pil **503035**, 500 mAh, 3.7 V, koruma devreli, JST-PH 2.0 fişli | 3 | `503035 lipo pil 500mAh JST` | Ölçü 5 × 30 × 35 mm (+ koruma devresi en fazla 4 mm). **Kutuplar ters gelebilir, aşağıdaki uyarıya bakın** |
-| 5 | **SHT31** sıcaklık/nem modülü (GY-SHT31-D) | 3 | `SHT31 sıcaklık nem sensörü modülü` | I²C. Yaklaşık 14 × 11 mm. 4 veya 6 pinli olabilir, ikisi de olur |
+| 4 | LiPo pil **503035**, 500 mAh, 3.7 V, koruma devreli, JST-PH 2.0 fişli | 3 | `503035 lipo pil 500mAh JST` | Ölçü 5 × 30 × 35 mm (+ koruma devresi en fazla 4 mm). 503030 da olur. **Kutuplar ters gelebilir, aşağıdaki uyarıya bakın** |
+| 5 | **SHT31** sıcaklık/nem modülü (GY-SHT31-D) | 3 | `SHT31 sıcaklık nem sensörü modülü` | I²C. Yaklaşık 14 × 11 mm. 4 veya 6 pinli olabilir, ikisi de olur. **SHT30** modülü de olur (yazılım ikisini de tanır) |
 | 6 | **TTP223** dokunmatik buton modülü, küçük (3 pin) | 1 | `TTP223 dokunmatik sensör modülü` | ≈15 × 11 mm. Büyük (24 × 24 mm) modül kutuya sığmaz |
 
 ## 2. Hub kartı elemanları
@@ -28,7 +31,7 @@ mağazanın arama kutusuna yazabileceğiniz ifadedir.
 | Q1 | S8050 NPN transistör | TO-92 | 1 | `S8050 transistör` | Yerine 2N2222A olur (aynı E-B-C sırası). BC337'nin sırası ters (C-B-E), onu kullanırsanız 180° döndürün |
 | LED3 | Kırmızı LED, 3 mm, mat (difüz) | THT | 1 | `3mm kırmızı led difüz` | |
 | LED4 | Yeşil LED, 3 mm, mat (difüz) | THT | 1 | `3mm yeşil led difüz` | |
-| C2 | 220 µF, 6.3 V veya 10 V elektrolitik | Ø6.3 mm, **en fazla 7 mm yükseklik**, bacak aralığı 2.5 mm | 1 | `220uF 10V 6.3x7` | 11 mm boyundaki kutuya sığmaz |
+| C2 | 220 µF, 6.3 V veya 10 V elektrolitik | Ø6.3 mm, **en fazla 7 mm yükseklik**, bacak aralığı 2.5 mm | 1 | `220uF 10V 6.3x7` | 11 mm boyundaki kutuya sığmaz. Ø8 × 5 mm da olur |
 | R5 | 10 Ω | 1206 SMD | 1 | `1206 smd direnç 10 ohm` | IR LED akımı |
 | R7 | 150 Ω | 1206 | 1 | `1206 smd direnç 150 ohm` | |
 | R9, R10 | 470 Ω | 1206 | 2 | `1206 smd direnç 470 ohm` | Durum LED'leri. Daha kısık isterseniz 1k |
