@@ -39,3 +39,6 @@ firmware/hub/src/generated/
 
 # PCB ara dosyaları (DSN/SES)
 pcb/*/_work/
+
+# Fabrika PCB ara dosyaları
+pcb/fab/*/_work/

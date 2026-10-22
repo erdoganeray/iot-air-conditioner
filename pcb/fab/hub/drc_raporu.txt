@@ -1,0 +1,226 @@
+** Drc report for /home/user/iot-air-conditioner/pcb/fab/hub/klima-hub-fab.kicad_pcb **
+** Created on 2026-10-22 20:58:29 **
+
+** Found 60 DRC violations **
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0761 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(20.0300 mm, 27.6600 mm): PCB Text 'D9' on F.Silkscreen
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0761 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(20.0300 mm, 30.2000 mm): PCB Text 'D10' on F.Silkscreen
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0761 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(20.0300 mm, 32.7400 mm): PCB Text '3V3' on F.Silkscreen
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0761 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+    @(20.0300 mm, 25.1200 mm): PCB Text 'D8' on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0380 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+    @(20.0300 mm, 22.5800 mm): PCB Text 'D7' on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+    @(20.0300 mm, 37.8200 mm): PCB Text '5V' on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0761 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(19.9900 mm, 40.8100 mm): Line on F.Silkscreen
+    @(20.0300 mm, 35.2800 mm): PCB Text 'GND' on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(3.0000 mm, 34.6000 mm): PCB Text '+' on F.Silkscreen
+    @(3.3900 mm, 34.3900 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0121 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(3.0000 mm, 34.6000 mm): PCB Text '+' on F.Silkscreen
+    @(3.0500 mm, 35.3000 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0121 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(3.0000 mm, 34.6000 mm): PCB Text '+' on F.Silkscreen
+    @(5.0000 mm, 35.3000 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(3.0000 mm, 34.6000 mm): PCB Text '+' on F.Silkscreen
+    @(8.5600 mm, 34.6900 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(3.0000 mm, 34.6000 mm): PCB Text '+' on F.Silkscreen
+    @(2.4400 mm, 34.6900 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(29.0000 mm, 26.0000 mm): PCB Text 'KlimaHub HUB v1.0' on B.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(11.6800 mm, 30.5000 mm): Reference 'R2'
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
+    Local override; Severity: warning
+    @(50.0000 mm, 23.0000 mm): Footprint J3
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(41.5000 mm, 17.0000 mm): Footprint LED4
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(11.2000 mm, 25.1200 mm): Footprint LED3
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_JST'.
+    Local override; Severity: warning
+    @(4.5000 mm, 36.5000 mm): Footprint J1
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
+    Local override; Severity: warning
+    @(33.0800 mm, 3.8000 mm): Footprint U2
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(9.5000 mm, 3.8000 mm): Footprint LED1
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
+    Local override; Severity: warning
+    @(10.5000 mm, 19.5000 mm): Footprint J2
+[lib_footprint_issues]: The current configuration does not include the library 'Package_TO_SOT_THT'.
+    Local override; Severity: warning
+    @(17.0000 mm, 12.0000 mm): Footprint Q1
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(19.0000 mm, 3.8000 mm): Footprint LED2
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_THT'.
+    Local override; Severity: warning
+    @(6.5000 mm, 13.0000 mm): Footprint C2
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(9.0000 mm, 29.0000 mm): Footprint R1
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(20.5000 mm, 17.0000 mm): Footprint R7
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(15.5000 mm, 16.8000 mm): Footprint R8
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_SMD'.
+    Local override; Severity: warning
+    @(17.0000 mm, 30.5000 mm): Footprint C1
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(6.5000 mm, 9.0000 mm): Footprint R5
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_SMD'.
+    Local override; Severity: warning
+    @(29.3000 mm, 8.2000 mm): Footprint C5
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(13.5000 mm, 30.5000 mm): Footprint R2
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(17.6000 mm, 25.1200 mm): Footprint R10
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(17.0000 mm, 35.5000 mm): Footprint R3
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(12.4000 mm, 37.8000 mm): Footprint R4
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_SMD'.
+    Local override; Severity: warning
+    @(4.0000 mm, 19.0000 mm): Footprint C3
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_SMD'.
+    Local override; Severity: warning
+    @(41.5000 mm, 21.0000 mm): Footprint R9
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(10.7900 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(10.7900 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(9.5000 mm, 2.7200 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(9.5000 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(9.5000 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(6.9600 mm, 2.7200 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(6.9600 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(6.9600 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(5.6700 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(5.6700 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(5.6700 mm, -1.0700 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(5.2700 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(20.2900 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(20.2900 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(19.0000 mm, 2.7200 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(19.0000 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(19.0000 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(16.4600 mm, 2.7200 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(16.4600 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(16.4600 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(15.1700 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(15.1700 mm, 0.0500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(15.1700 mm, -1.0700 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge (board setup constraints silk clearance 0.1000 mm; actual 0.0000 mm)
+    Rule: board setup constraints silk; Severity: warning
+    @(2.0000 mm, 0.0000 mm): Line on Edge.Cuts
+    @(14.7700 mm, 0.0500 mm): Line on F.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **
