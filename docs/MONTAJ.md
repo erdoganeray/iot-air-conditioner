@@ -158,7 +158,9 @@ ayarları: [enclosure/README.md](../enclosure/README.md).
    ile sol duvar arasındaki boşluktan yukarı çıkar.
 3. **Kart:** Kartı ara plakanın raylarına yerleştirin. IR LED'ler ön duvardaki yarım deliklere,
    USB-C arka duvardaki açıklığa gelmeli.
-4. Pil fişini J1'e takın (kutupları kontrol ettiniz, değil mi?).
+4. Pil fişini J1'e takın (kutupları kontrol ettiniz, değil mi?). Pilin fişi JST-PH değilse
+   (ör. [SATIN_ALMA.md](SATIN_ALMA.md)'deki 503030 pil), fişi kesip kabloları J1 deliklerine
+   doğrudan lehimleyin: kırmızı **+** (kare ped), siyah diğeri. Kabloları tek tek kesin.
 5. **SHT31:** Sağ öndeki odacığa koyun. Sensör çipi ön ızgaraya baksın. Odacığın arka duvarına
    bir damla sıcak silikonla yapıştırın. Kablolar odacık duvarının üstünden geçer.
 6. **TTP223:** Kapağın iç yüzündeki dikdörtgen çerçeveye, **dokunma yüzü kapağa bakacak**
@@ -184,7 +186,7 @@ tornavidayla içeri bastırıp kapağı kaldırın.
    yuvarlak delik vida sütununa geçer.
 3. **Kart:** Vida deliği sütunun üstüne gelecek şekilde ara plakaya oturtun. USB-C alttaki
    açıklığa bakar.
-4. Pil fişini J1'e takın.
+4. Pil fişini J1'e takın (veya kablolarını J1'e doğrudan lehimleyin, hub'daki gibi).
 5. **SHT31:** Ön kapağın iç yüzünde, üstteki iki rayın arasına yerleştirin. Sensör çipi kapağın
    ızgarasına baksın. Kenarından bir damla sıcak silikonla sabitleyin.
 6. **Anten:** Ön kapağın iç yüzüne, XIAO'nun tam üstüne gelmeyecek şekilde (kapağın alt yarısı,
