@@ -349,7 +349,7 @@ def find_all(node, key):
             yield from find_all(c, key)
 
 
-def import_ses(board, ses_path):
+def import_ses(board, ses_path, via_width=1.8, via_drill=0.8):
     """Freerouting SES dosyasındaki izleri karta ekler (KiCad 7 betik API'sinde
     ImportSpecctraSES yalnızca açık editörde çalıştığı için)."""
     tree = parse_sexpr(open(ses_path).read())
@@ -380,8 +380,8 @@ def import_ses(board, ses_path):
             v = pcbnew.PCB_VIA(board)
             v.SetViaType(pcbnew.VIATYPE_THROUGH)
             v.SetPosition(V(to_mm(via[2]), -to_mm(via[3])))
-            v.SetWidth(mm(1.8))
-            v.SetDrill(mm(0.8))
+            v.SetWidth(mm(via_width))
+            v.SetDrill(mm(via_drill))
             v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
             v.SetNet(ni)
             board.Add(v)

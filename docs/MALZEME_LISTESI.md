@@ -82,6 +82,8 @@ Mağazada tek seferde sepete eklemek için:
 
 ## 6. Bakır plaket (CNC)
 
+> Kartları fabrikaya ürettirirseniz ([pcb/fab/README.md](../pcb/fab/README.md)) 6. ve 7. bölümler gerekmez.
+
 | Parça | Adet | Arama terimi | Not |
 |---|---|---|---|
 | **Tek yüzlü** bakır plaket, 1.6 mm, 10 × 15 cm | 1–2 | `tek yüzlü bakır plaket 10x15` | Üç kart (62×50 + 2 × 33×52 mm) bir plakaya sığar. İkinciyi deneme için alın |

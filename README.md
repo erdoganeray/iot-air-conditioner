@@ -35,7 +35,8 @@ CNC'de kazıyıp, kutusunu 3D yazıcıda basıp kurabileceğiniz şekilde, başt
 
 1. [docs/RAPOR.md](docs/RAPOR.md): projenin durumu ve yapılacaklar listesi
 2. [docs/MALZEME_LISTESI.md](docs/MALZEME_LISTESI.md): sipariş listesi
-3. [docs/CNC.md](docs/CNC.md): kartların CNC'de kazınması (Candle)
+3. Kartlar: [pcb/fab/README.md](pcb/fab/README.md) ile fabrikaya sipariş **veya**
+   [docs/CNC.md](docs/CNC.md) ile CNC'de kazıma (Candle)
 4. [enclosure/README.md](enclosure/README.md): kutuların baskısı
 5. [docs/MONTAJ.md](docs/MONTAJ.md): lehim ve montaj
 6. [docs/KURULUM.md](docs/KURULUM.md): yazılım yükleme, WiFi, kumanda, sensörler, Telegram
@@ -81,6 +82,7 @@ pip install aiohttp && python3 app/tools/mock_hub.py   # http://localhost:8080, 
 python3 pcb/tools/build_pcb.py all
 python3 pcb/tools/cnc.py all --angle 30 --tip 0.2
 python3 pcb/tools/assembly_maps.py all
+python3 pcb/tools/build_fab.py all      # fabrika (2 katman) sürümü
 
 # Kutular (CadQuery)
 python3 enclosure/build_enclosures.py
