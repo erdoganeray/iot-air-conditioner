@@ -10,6 +10,11 @@ Kartı CNC'de üretmek için önce [CNC.md](CNC.md), malzemeler için
 
 ## 0. Genel bilgiler
 
+> **Fabrikada ürettirilen kart** ([pcb/fab/README.md](../pcb/fab/README.md)) kullanıyorsanız
+> adımlar aynıdır. Farklar: delikler metal kaplı olduğu için lehim deliğe kendiliğinden
+> ilerler; kartın üstünde eleman adları, `+` işaretleri ve pin adları yazılıdır.
+> 1206 elemanlar yine **alt yüze** lehimlenir.
+
 - Kartlar **tek yüzlüdür**: bakır alt yüzdedir. Bacaklı elemanlar **üstten** takılır,
   **alttan** lehimlenir. Küçük SMD dirençler ve kondansatörler (1206) doğrudan **alt yüze**
   lehimlenir.
